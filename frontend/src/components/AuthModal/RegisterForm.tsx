@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 interface RegisterFormProps {
-  onLogin: (email: string, role: 'user' | 'admin') => void;
+  onLogin: (user: User) => void;
 }
 
 const validarEmail = (email: string) =>
@@ -10,45 +10,45 @@ const validarEmail = (email: string) =>
 export const RegisterForm = ({ onLogin }: RegisterFormProps) => {
   const [formData, setFormData] = useState({
     email: '',
-    nombre: '',
+    name: '',
     password: '',
     passwordConfirm: '',
   });
   const [errors, setErrors] = useState({
     email: '',
-    nombre: '',
+    name: '',
     password: '',
     passwordConfirm: '',
   });
   const [submitted, setSubmitted] = useState(false);
 
   const validar = () => {
-    const nuevosErrores = {
+    const newErrors = {
       email: '',
-      nombre: '',
+      name: '',
       password: '',
       passwordConfirm: '',
     };
     let valid = true;
 
     if (!validarEmail(formData.email)) {
-      nuevosErrores.email = 'Correo electrónico inválido';
+      newErrors.email = 'Correo electrónico inválido';
       valid = false;
     }
-    if (!formData.nombre.trim()) {
-      nuevosErrores.nombre = 'El nombre es obligatorio';
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre es obligatorio';
       valid = false;
     }
     if (formData.password.length < 6) {
-      nuevosErrores.password = 'La contraseña debe tener al menos 6 caracteres';
+      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
       valid = false;
     }
     if (formData.passwordConfirm !== formData.password) {
-      nuevosErrores.passwordConfirm = 'Las contraseñas no coinciden';
+      newErrors.passwordConfirm = 'Las contraseñas no coinciden';
       valid = false;
     }
 
-    setErrors(nuevosErrores);
+    setErrors(newErrors);
     return valid;
   };
 
@@ -61,7 +61,12 @@ export const RegisterForm = ({ onLogin }: RegisterFormProps) => {
     setSubmitted(true);
     if (!validar()) return;
 
-    onLogin(formData.email, 'user');
+    onLogin({
+      name: formData.name,
+      email: formData.email,
+      role: 'user',
+      phone: '555',
+    });
   };
 
   return (
@@ -99,16 +104,16 @@ export const RegisterForm = ({ onLogin }: RegisterFormProps) => {
           name='nombre'
           type='text'
           placeholder='Tu nombre completo'
-          value={formData.nombre}
+          value={formData.name}
           onChange={handleChange}
           className={`w-full bg-[#1E2638] border rounded px-3 py-2 text-white placeholder-brandLightGray focus:outline-none focus:ring-2 focus:ring-brandOrange ${
-            errors.nombre && submitted
+            errors.name && submitted
               ? 'border-red-500'
               : 'border-brandLightGray'
           }`}
         />
-        {errors.nombre && submitted && (
-          <p className='text-red-500 mt-1 text-sm'>{errors.nombre}</p>
+        {errors.name && submitted && (
+          <p className='text-red-500 mt-1 text-sm'>{errors.name}</p>
         )}
       </div>
 

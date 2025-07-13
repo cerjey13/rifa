@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 interface LoginFormProps {
-  onLogin: (email: string, role: 'user' | 'admin') => void;
+  onLogin: (user: User) => void;
   onSwitch: () => void;
 }
 
@@ -23,9 +23,19 @@ const fakeLoginApi = (email: string, password: string) =>
   new Promise<User>((resolve) => {
     setTimeout(() => {
       if (email === 'admin@example.com' && password === 'admin123') {
-        resolve({ email: 'test@mail.com', role: 'admin' });
+        resolve({
+          email: 'test@mail.com',
+          role: 'admin',
+          name: 'test',
+          phone: '555745',
+        });
       } else if (email === 'user@example.com' && password === 'user123') {
-        resolve({ email: 'test@mail.com', role: 'user' });
+        resolve({
+          email: 'test@mail.com',
+          role: 'user',
+          name: 'user',
+          phone: '456789',
+        });
       } else {
         resolve({} as User);
       }
@@ -76,11 +86,9 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      // Aquí simulas llamada al backend, cámbialo por tu API real
-      const response = await fakeLoginApi(formData.email, formData.password);
-      if (response.email !== undefined) {
-        // Supongamos que el backend devuelve rol de usuario
-        onLogin(formData.email, response.role);
+      const user = await fakeLoginApi(formData.email, formData.password);
+      if (user.email !== undefined) {
+        onLogin(user);
       } else {
         setErrors((prev) => ({ ...prev, message: 'Error al iniciar sesión' }));
       }

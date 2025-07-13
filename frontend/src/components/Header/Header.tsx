@@ -1,22 +1,14 @@
 import logo from '@src/assets/react.svg';
-import { useState } from 'react';
 import { LoginRegisterModal } from '@src/components/AuthModal/Modal';
 import { useAuth } from '@src/context/useAuth';
+import { useModal } from '@src/context/useModal';
 
 export const Header = () => {
   const { user, setUser } = useAuth();
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [isRegister, setIsRegister] = useState<boolean>(false);
+  const { modalOpen, isRegister, openLoginModal, closeModal } = useModal();
 
-  const openModal = (register = false) => {
-    setIsRegister(register);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => setModalOpen(false);
-
-  const login = (email: string, role: 'user' | 'admin') => {
-    setUser({ email, role });
+  const login = (user: User) => {
+    setUser(user);
     closeModal();
   };
 
@@ -25,11 +17,13 @@ export const Header = () => {
   return (
     <>
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
-        <img src={logo} alt='Logo' className='h-10' />
+        <a href='/'>
+          <img src={logo} alt='Logo' className='h-10' />
+        </a>
         <nav className='flex items-center space-x-6 font-semibold text-sm'>
           {!user && (
             <button
-              onClick={() => openModal(false)}
+              onClick={() => openLoginModal(false)}
               className='bg-[#F97316] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition'
             >
               Iniciar sesión / Registrarse
@@ -70,7 +64,7 @@ export const Header = () => {
         <LoginRegisterModal
           isRegister={isRegister}
           onClose={closeModal}
-          onSwitch={() => setIsRegister(!isRegister)}
+          onSwitch={() => openLoginModal(!isRegister)}
           onLogin={login}
         />
       )}
