@@ -30,7 +30,6 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 			ctx context.Context,
 			input *dto.RegisterInput,
 		) (*dto.RegisterOutput, error) {
-			fmt.Println(input.Body, input)
 			err := svc.Register(ctx, &input.Body)
 			if err != nil {
 				return nil, huma.Error400BadRequest(

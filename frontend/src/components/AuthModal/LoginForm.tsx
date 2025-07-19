@@ -1,4 +1,7 @@
+import { login } from '@src/api/auth';
+import { getErrorMessage } from '@src/utils/errors';
 import { useState } from 'react';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 interface LoginFormProps {
   onLogin: (user: User) => void;
@@ -18,30 +21,6 @@ interface FormError {
 const validarEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-// Simulación de llamada API login (reemplaza por fetch o axios real)
-const fakeLoginApi = (email: string, password: string) =>
-  new Promise<User>((resolve) => {
-    setTimeout(() => {
-      if (email === 'admin@example.com' && password === 'admin123') {
-        resolve({
-          email: 'test@mail.com',
-          role: 'admin',
-          name: 'test',
-          phone: '555745',
-        });
-      } else if (email === 'user@example.com' && password === 'user123') {
-        resolve({
-          email: 'test@mail.com',
-          role: 'user',
-          name: 'user',
-          phone: '456789',
-        });
-      } else {
-        resolve({} as User);
-      }
-    }, 1000);
-  });
-
 export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
   const [formData, setFormData] = useState<LoginProps>({
     email: '',
@@ -54,6 +33,7 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
   });
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validar = () => {
     const newErrors: FormError = { email: '', password: '', message: '' };
@@ -76,6 +56,10 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword((v) => !v);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -86,15 +70,20 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      const user = await fakeLoginApi(formData.email, formData.password);
+      const user = await login({
+        email: formData.email,
+        password: formData.password,
+      });
       if (user.email !== undefined) {
         onLogin(user);
       } else {
         setErrors((prev) => ({ ...prev, message: 'Error al iniciar sesión' }));
       }
     } catch (error) {
-      setErrors((prev) => ({ ...prev, message: 'Error al iniciar sesión' }));
-      console.error(error);
+      setErrors((prev) => ({
+        ...prev,
+        message: getErrorMessage(error, 'Error al iniciar sesión'),
+      }));
     } finally {
       setLoading(false);
     }
@@ -139,19 +128,32 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
         >
           Contraseña
         </label>
-        <input
-          id='password'
-          name='password'
-          type='password'
-          placeholder='Tu contraseña'
-          value={formData.password}
-          onChange={handleChange}
-          className={`w-full bg-[#1E2638] border rounded px-3 py-2 text-white placeholder-brandLightGray focus:outline-none focus:ring-2 focus:ring-brandOrange ${
-            errors.password && submitted
-              ? 'border-red-500'
-              : 'border-brandLightGray'
-          }`}
-        />
+        <div className='relative'>
+          <input
+            id='password'
+            name='password'
+            type={showPassword ? 'text' : 'password'}
+            placeholder='Tu contraseña'
+            value={formData.password}
+            onChange={handleChange}
+            className={`w-full bg-[#1E2638] border rounded px-3 py-2 text-white placeholder-brandLightGray focus:outline-none focus:ring-2 focus:ring-brandOrange ${
+              errors.password && submitted
+                ? 'border-red-500'
+                : 'border-brandLightGray'
+            }`}
+          />
+          <button
+            type='button'
+            className='absolute right-2 top-1/2 -translate-y-1/2 text-lg text-white'
+            tabIndex={-1}
+            onClick={togglePasswordVisibility}
+            aria-label={
+              showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+            }
+          >
+            {showPassword ? <FiEyeOff /> : <FiEye />}
+          </button>
+        </div>
         {errors.password && submitted && (
           <p className='text-red-500 mt-1 text-sm'>{errors.password}</p>
         )}

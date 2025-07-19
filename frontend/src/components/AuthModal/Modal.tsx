@@ -26,7 +26,7 @@ export const LoginRegisterModal = ({
         </button>
 
         {isRegister ? (
-          <RegisterForm onLogin={onLogin} />
+          <RegisterForm onRegister={onSwitch} />
         ) : (
           <LoginForm onLogin={onLogin} onSwitch={onSwitch} />
         )}
