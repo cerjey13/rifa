@@ -14,12 +14,20 @@ import (
 )
 
 type DB interface {
+	Query(ctx context.Context, query string, args ...any) (Rows, error)
 	QueryRow(ctx context.Context, query string, args ...any) Row
 	ExecContext(ctx context.Context, query string, args ...any) error
 }
 
 type Row interface {
 	Scan(dest ...any) error
+}
+
+type Rows interface {
+	Next() bool
+	Scan(dest ...any) error
+	Close()
+	Err() error
 }
 
 var (

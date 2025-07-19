@@ -1,6 +1,7 @@
-import { CopyableText } from '@src/components/Clipboard/Copy';
 import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
+import { submitPurchase } from '@src/api/purchase';
+import { CopyableText } from '@src/components/Clipboard/Copy';
 
 interface BuyFormProps {
   quantity: number;
@@ -15,22 +16,6 @@ const paymentMethods = {
   pagoMovil: 'pago movil',
   zelle: 'zelle',
 } as const;
-
-function fakeSendToBackend(data: {
-  transactionDigits: string;
-  paymentScreenshot: File;
-}): Promise<void> {
-  console.log(data);
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (Math.random() < 0.8) {
-        resolve();
-      } else {
-        reject(new Error('Error de red'));
-      }
-    }, 2000);
-  });
-}
 
 export const BuyForm = ({
   quantity,
@@ -68,8 +53,14 @@ export const BuyForm = ({
     setLoading(true);
 
     try {
-      //TODO: change for backend code connection
-      await fakeSendToBackend({ transactionDigits, paymentScreenshot });
+      await submitPurchase({
+        quantity,
+        montoBs,
+        montoUSD,
+        paymentMethod,
+        transactionDigits,
+        paymentScreenshot,
+      });
 
       setSuccess(true);
     } catch {
@@ -218,6 +209,7 @@ export const BuyForm = ({
           <div>
             <p className='font-semibold mb-1'>Captura del pago realizado</p>
             <input
+              name='file'
               type='file'
               accept='image/*'
               onChange={handleFileChange}
