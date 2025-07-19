@@ -37,6 +37,7 @@ func GenerateJWT(user *types.User) (string, error) {
 		"id":    user.ID,
 		"name":  user.Name,
 		"email": user.Email,
+		"role":  user.Role,
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

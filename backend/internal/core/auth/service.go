@@ -40,6 +40,7 @@ func (s *service) Register(
 		Email:    input.Email,
 		Phone:    input.Phone,
 		Password: string(hashed),
+		Role:     types.CustomerRole,
 	}
 
 	err = s.users.CreateUser(ctx, user)
@@ -71,6 +72,7 @@ func (s *service) Login(
 		Name:        user.Name,
 		Email:       user.Email,
 		Phone:       user.Phone,
+		Role:        string(user.Role),
 		AccessToken: jwt,
 	}
 

@@ -67,6 +67,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 					Name:  user.Name,
 					Email: user.Email,
 					Phone: user.Phone,
+					Role:  user.Role,
 				},
 				SetCookie: http.Cookie{
 					Name:     "session",
@@ -100,6 +101,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 			output.Body = form.MeResponse{
 				Name:  claims["name"].(string),
 				Email: claims["email"].(string),
+				Role:  claims["role"].(string),
 			}
 
 			return output, nil
