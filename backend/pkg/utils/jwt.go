@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"rifa/backend/internal/types"
 	"rifa/backend/pkg/config"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,7 +26,7 @@ func CheckPassword(password, hash string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
 
-func GenerateJWT(userID string) (string, error) {
+func GenerateJWT(user *types.User) (string, error) {
 	cfg, err := config.NewConfig()
 	if err != nil {
 		return "", err
@@ -33,8 +34,9 @@ func GenerateJWT(userID string) (string, error) {
 
 	var jwtKey = []byte(cfg.JwtSecret)
 	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"name":  user.Name,
+		"email": user.Email,
+		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
@@ -47,7 +49,7 @@ func ValidateJWT(tokenStr string) (jwt.MapClaims, error) {
 	}
 
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
-		return cfg.JwtSecret, nil
+		return []byte(cfg.JwtSecret), nil
 	})
 	if err != nil || !token.Valid {
 		return nil, errors.New("invalid token")

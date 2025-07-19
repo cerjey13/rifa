@@ -21,3 +21,8 @@ type LoginResponse struct {
 type BaseResponse struct {
 	Message string `json:"message"`
 }
+
+type MeResponse struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}

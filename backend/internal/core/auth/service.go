@@ -63,7 +63,7 @@ func (s *service) Login(
 		return types.AuthUser{}, errors.New("invalid email or password")
 	}
 
-	jwt, err := utils.GenerateJWT(user.ID)
+	jwt, err := utils.GenerateJWT(user)
 	if err != nil {
 		return types.AuthUser{}, err
 	}
