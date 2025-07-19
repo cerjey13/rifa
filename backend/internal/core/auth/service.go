@@ -13,7 +13,7 @@ import (
 
 type Service interface {
 	Register(ctx context.Context, input *form.RegisterRequest) error
-	Login(ctx context.Context, input *form.LoginRequest) (types.AuthTokens, error)
+	Login(ctx context.Context, input *form.LoginRequest) (types.AuthUser, error)
 }
 
 type service struct {
@@ -53,21 +53,26 @@ func (s *service) Register(
 func (s *service) Login(
 	ctx context.Context,
 	input *form.LoginRequest,
-) (types.AuthTokens, error) {
+) (types.AuthUser, error) {
 	user, err := s.users.GetByEmail(ctx, input.Email)
 	if err != nil {
-		return types.AuthTokens{}, errors.New("invalid email or password")
+		return types.AuthUser{}, errors.New("invalid email or password")
 	}
 
 	if !utils.CheckPassword(input.Password, user.Password) {
-		return types.AuthTokens{}, errors.New("invalid email or password")
+		return types.AuthUser{}, errors.New("invalid email or password")
 	}
 
 	jwt, err := utils.GenerateJWT(user.ID)
 	if err != nil {
-		return types.AuthTokens{}, err
+		return types.AuthUser{}, err
+	}
+	authUser := types.AuthUser{
+		Name:        user.Name,
+		Email:       user.Email,
+		Phone:       user.Phone,
+		AccessToken: jwt,
 	}
 
-	return types.AuthTokens{AccessToken: jwt}, nil
-
+	return authUser, nil
 }

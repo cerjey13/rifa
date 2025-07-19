@@ -12,8 +12,10 @@ type LoginRequest struct {
 	Password string `json:"password" required:"true"`
 }
 
-type TokenResponse struct {
-	Token string `json:"token"`
+type LoginResponse struct {
+	Name  string `json:"name" required:"true"`
+	Email string `json:"email" required:"true"`
+	Phone string `json:"phone" required:"true"`
 }
 
 type BaseResponse struct {

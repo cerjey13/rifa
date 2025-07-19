@@ -1,7 +1,8 @@
 package types
 
-type AuthTokens struct {
-	AccessToken  string
-	RefreshToken string
-	ExpiresAt    int64
+type AuthUser struct {
+	Name        string `json:"name"`
+	Email       string `json:"email"`
+	Phone       string `json:"phone"`
+	AccessToken string
 }
