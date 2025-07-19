@@ -22,7 +22,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 		huma.Operation{
 			OperationID:   "register",
 			Method:        http.MethodPost,
-			Path:          "/register",
+			Path:          "/api/register",
 			Summary:       "register a user",
 			DefaultStatus: http.StatusCreated,
 		},
@@ -48,23 +48,27 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 		huma.Operation{
 			OperationID:   "login",
 			Method:        http.MethodPost,
-			Path:          "/login",
+			Path:          "/api/login",
 			DefaultStatus: http.StatusOK,
 		},
 		func(
 			ctx context.Context,
 			input *dto.LoginInput,
 		) (*dto.LoginOutput, error) {
-			token, err := svc.Login(ctx, &input.Body)
+			user, err := svc.Login(ctx, &input.Body)
 			if err != nil {
 				return nil, huma.Error400BadRequest("Invalid credentials")
 			}
 
 			return &dto.LoginOutput{
-				Body: form.BaseResponse{Message: "Login successful"},
+				Body: form.LoginResponse{
+					Name:  user.Name,
+					Email: user.Email,
+					Phone: user.Phone,
+				},
 				SetCookie: http.Cookie{
 					Name:     "session",
-					Value:    token.AccessToken,
+					Value:    user.AccessToken,
 					Path:     "/",
 					HttpOnly: true,
 					Secure:   true,

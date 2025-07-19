@@ -19,6 +19,6 @@ type LoginInput struct {
 }
 
 type LoginOutput struct {
-	Body      form.BaseResponse
+	Body      form.LoginResponse
 	SetCookie http.Cookie `header:"Set-Cookie"`
 }
