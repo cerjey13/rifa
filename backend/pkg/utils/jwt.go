@@ -34,6 +34,7 @@ func GenerateJWT(user *types.User) (string, error) {
 
 	var jwtKey = []byte(cfg.JwtSecret)
 	claims := jwt.MapClaims{
+		"id":    user.ID,
 		"name":  user.Name,
 		"email": user.Email,
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),

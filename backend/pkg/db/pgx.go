@@ -15,6 +15,10 @@ type pgxRowAdapter struct {
 	row pgx.Row
 }
 
+type pgxRowsAdapter struct {
+	rows pgx.Rows
+}
+
 func (r *pgxRowAdapter) Scan(dest ...any) error {
 	return r.row.Scan(dest...)
 }
@@ -31,6 +35,17 @@ func (d *pgxpoolAdapter) QueryRow(
 	return &pgxRowAdapter{row: d.pool.QueryRow(ctx, query, args...)}
 }
 
+func (d *pgxpoolAdapter) Query(
+	ctx context.Context,
+	query string,
+	args ...any,
+) (Rows, error) {
+	rows, err := d.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return &pgxRowsAdapter{rows: rows}, nil
+}
 func (d *pgxpoolAdapter) ExecContext(
 	ctx context.Context,
 	query string,
@@ -39,3 +54,8 @@ func (d *pgxpoolAdapter) ExecContext(
 	_, err := d.pool.Exec(ctx, query, args...)
 	return err
 }
+
+func (r *pgxRowsAdapter) Next() bool             { return r.rows.Next() }
+func (r *pgxRowsAdapter) Scan(dest ...any) error { return r.rows.Scan(dest...) }
+func (r *pgxRowsAdapter) Close()                 { r.rows.Close() }
+func (r *pgxRowsAdapter) Err() error             { return r.rows.Err() }

@@ -74,6 +74,7 @@ func NewHttpServer(db db.DB, opts HttpServerOptions) (*HttpServer, error) {
 	apiConfig.CreateHooks = nil
 	api := humachi.New(router, apiConfig)
 	httpx.RegisterAuthRoutes(api, db)
+	httpx.RegisterPurchaseRoutes(api, db)
 
 	server := &HttpServer{
 		router,
