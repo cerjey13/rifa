@@ -22,3 +22,12 @@ type LoginOutput struct {
 	Body      form.LoginResponse
 	SetCookie http.Cookie `header:"Set-Cookie"`
 }
+
+type MeOutput struct {
+	Body form.MeResponse
+}
+
+type LogoutOutput struct {
+	Body        form.BaseResponse
+	ClearCookie http.Cookie `header:"Set-Cookie"`
+}

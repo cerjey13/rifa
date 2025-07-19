@@ -4,15 +4,13 @@ import { useAuth } from '@src/context/useAuth';
 import { useModal } from '@src/context/useModal';
 
 export const Header = () => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
   const { modalOpen, isRegister, openLoginModal, closeModal } = useModal();
 
   const login = (user: User) => {
     setUser(user);
     closeModal();
   };
-
-  const logout = () => setUser(null);
 
   return (
     <>
