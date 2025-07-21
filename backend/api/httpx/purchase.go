@@ -7,7 +7,7 @@ import (
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
-	"rifa/backend/api/httpx/middleware"
+	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/purchase"
 	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/utils"
@@ -26,7 +26,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			Method:        http.MethodPost,
 			Path:          "/api/purchase",
 			Summary:       "Submit a purchase",
-			Middlewares:   huma.Middlewares{middleware.RequireSession(api)},
+			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 			DefaultStatus: http.StatusCreated,
 		},
 		func(
@@ -90,6 +90,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 				MontoUSD:          p.MontoUSD,
 				PaymentMethod:     p.PaymentMethod,
 				TransactionDigits: p.TransactionDigits,
+				Status:            string(p.Status),
 				PaymentScreenshot: p.PaymentScreenshot,
 			})
 		}

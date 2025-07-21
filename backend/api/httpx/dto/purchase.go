@@ -8,7 +8,7 @@ import (
 
 type PurchaseInput struct {
 	RawBody huma.MultipartFormFiles[struct {
-		ScreenShot huma.FormFile `form:"paymentScreenshot" contentType:"image/png" required:"true"`
+		ScreenShot huma.FormFile `form:"paymentScreenshot" contentType:"image/*" required:"true"`
 		form.Form
 	}]
 }

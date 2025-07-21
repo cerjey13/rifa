@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"rifa/backend/api/httpx"
 	"rifa/backend/pkg/db"
@@ -13,6 +14,7 @@ import (
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
 	chimdw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 )
 
 // FS is an interface that abstracts filesystem operations.
@@ -69,7 +71,11 @@ func NewHttpServer(db db.DB, opts HttpServerOptions) (*HttpServer, error) {
 		return nil, fmt.Errorf("logger is required")
 	}
 	router := chi.NewRouter()
+	router.Use(chimdw.Logger)
+	router.Use(httprate.LimitAll(10, 1*time.Second))
+	router.Use(chimdw.SupressNotFound(router))
 	router.Use(chimdw.Recoverer)
+
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
 	api := humachi.New(router, apiConfig)
