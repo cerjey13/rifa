@@ -21,7 +21,7 @@ func RequireSession(
 				ctx,
 				http.StatusUnauthorized,
 				"Unauthenticated",
-				nil,
+				err,
 			)
 			return
 		}
@@ -34,7 +34,7 @@ func RequireSession(
 				ctx,
 				http.StatusUnauthorized,
 				"Invalid or expired session",
-				nil,
+				err,
 			)
 			return
 		}

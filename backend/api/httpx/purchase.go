@@ -75,6 +75,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		Method:        http.MethodGet,
 		Path:          "/api/purchases",
 		Summary:       "List all purchases (admin only)",
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 		DefaultStatus: http.StatusOK,
 	}, func(ctx context.Context, _ *struct{}) (*dto.PurchasesOutput, error) {
 		list, err := svr.GetAll(ctx)
