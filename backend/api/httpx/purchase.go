@@ -17,7 +17,7 @@ import (
 )
 
 func RegisterPurchaseRoutes(api huma.API, db database.DB) {
-	svr := purchase.NewService(db)
+	srv := purchase.NewService(db)
 
 	huma.Register(
 		api,
@@ -58,7 +58,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 				TransactionDigits: formData.TransactionDigits,
 				PaymentScreenshot: screenshot,
 			}
-			if err := svr.Create(ctx, purchase); err != nil {
+			if err := srv.Create(ctx, purchase); err != nil {
 				return nil, huma.Error500InternalServerError(
 					"Failed to save purchase",
 				)
@@ -77,23 +77,13 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		Summary:       "List all purchases (admin only)",
 		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 		DefaultStatus: http.StatusOK,
-	}, func(ctx context.Context, _ *struct{}) (*dto.PurchasesOutput, error) {
-		list, err := svr.GetAll(ctx)
+	}, func(
+		ctx context.Context,
+		input *dto.GetAllPurchases,
+	) (*dto.PurchasesOutput, error) {
+		purchases, err := srv.GetAll(ctx, *input)
 		if err != nil {
 			return nil, huma.Error500InternalServerError("Failed to get purchases")
-		}
-		purchases := make([]form.Purchases, 0, len(list))
-		for _, p := range list {
-			purchases = append(purchases, form.Purchases{
-				UserID:            p.UserID,
-				Quantity:          p.Quantity,
-				MontoBs:           p.MontoBs,
-				MontoUSD:          p.MontoUSD,
-				PaymentMethod:     p.PaymentMethod,
-				TransactionDigits: p.TransactionDigits,
-				Status:            string(p.Status),
-				PaymentScreenshot: p.PaymentScreenshot,
-			})
 		}
 
 		output := dto.PurchasesOutput{}

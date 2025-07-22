@@ -74,6 +74,7 @@ func NewHttpServer(db db.DB, opts HttpServerOptions) (*HttpServer, error) {
 	router.Use(chimdw.Logger)
 	router.Use(httprate.LimitAll(10, 1*time.Second))
 	router.Use(chimdw.SupressNotFound(router))
+	router.Use(chimdw.Compress(4, "application/json"))
 	router.Use(chimdw.Recoverer)
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")

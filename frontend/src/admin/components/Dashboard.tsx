@@ -1,24 +1,60 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { PurchaseFilters } from './PurchaseFilters';
+import { useQuery } from '@tanstack/react-query';
+import { formatDateES } from '@src/utils/dates';
 
-export const Dashboard = () => {
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [loading, setLoading] = useState(true);
+type Filters = { status: string };
+type PageParams = { page: number; perPage: number } & Filters;
+
+const statusEs: Record<string, string> = {
+  pending: 'pendiente',
+  verified: 'verificado',
+  cancelled: 'cancelado',
+};
+
+const fetchPurchases = async (params: PageParams): Promise<Purchase[]> => {
+  const urlParams = new URLSearchParams();
+  if (params.status && params.status !== 'all')
+    urlParams.append('status', params.status);
+  urlParams.append('page', String(params.page));
+  urlParams.append('perPage', String(params.perPage));
+
+  const res = await fetch(`/api/purchases?${urlParams.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Network error');
+  return res.json();
+};
+
+export const Dashboard: React.FC = () => {
   const [modalImage, setModalImage] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Omit<User, 'role'> | null>(
+    null,
+  );
+  const [filters, setFilters] = useState<Filters>({ status: '' });
+  const [page, setPage] = useState<number>(1);
+  const perPage = 10;
 
-  useEffect(() => {
-    fetch('/api/purchases', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setPurchases(data);
-        setLoading(false);
-      });
-  }, []);
+  const {
+    data: purchases = [],
+    isLoading,
+    isFetching,
+    error,
+  } = useQuery<Purchase[], Error>({
+    queryKey: ['purchases', { ...filters, page, perPage }],
+    queryFn: () => fetchPurchases({ ...filters, page, perPage }),
+    placeholderData: (prevData) => prevData,
+  });
 
-  if (loading) return <div className='text-center mt-10'>Cargando...</div>;
+  const pageCount = Math.ceil(purchases.length / perPage);
+
+  if (isLoading) return <div className='text-center mt-10'>Cargando...</div>;
+  if (error)
+    return (
+      <div className='text-center mt-10 text-red-500'>Error cargando datos</div>
+    );
 
   const totalBs = purchases.reduce((sum, p) => sum + (p.montoBs || 0), 0);
   const totalUsd = purchases.reduce((sum, p) => sum + (p.montoUsd || 0), 0);
@@ -29,7 +65,7 @@ export const Dashboard = () => {
         Resumen de compras
       </h1>
 
-      {/* Stats */}
+      {/* Stats - mobile stacks, desktop grid */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 mb-4 md:mb-8'>
         <div className='bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center'>
           <span className='text-base sm:text-lg'>Total compras</span>
@@ -51,31 +87,75 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Responsive Table */}
+      <PurchaseFilters onFilter={setFilters} />
+
+      {isFetching && (
+        <div className='flex items-center gap-2 text-sm text-gray-400 mb-2'>
+          <svg
+            className='animate-spin h-4 w-4 text-gray-400'
+            fill='none'
+            viewBox='0 0 24 24'
+          >
+            <circle
+              className='opacity-25'
+              cx='12'
+              cy='12'
+              r='10'
+              stroke='currentColor'
+              strokeWidth='4'
+            ></circle>
+            <path
+              className='opacity-75'
+              fill='currentColor'
+              d='M4 12a8 8 0 018-8v8H4z'
+            ></path>
+          </svg>
+          Actualizando datos...
+        </div>
+      )}
+
+      {/* MOBILE FIRST: Cards */}
       <div className='block md:hidden'>
-        {/* Mobile: show as cards */}
         <div className='space-y-4'>
-          {purchases.map((p) => (
+          {purchases.map((p, i) => (
             <div
-              key={p.userId + p.transactionDigits}
+              key={p.user.email + p.transactionDigits + i}
               className='bg-gray-900 rounded-lg shadow p-4'
             >
               <div className='flex flex-wrap items-center gap-2 mb-2'>
-                <span className='font-bold'>Usuario:</span> {p.userId}
+                <span className='font-bold'>Usuario:</span> {p.user.name}
+                <button
+                  className='ml-2 px-2 py-1 rounded bg-gray-700 text-xs text-white hover:bg-gray-600'
+                  onClick={() => setSelectedUser(p.user)}
+                  title='Ver detalles'
+                  type='button'
+                >
+                  Detalles
+                </button>
               </div>
               <div>
-                Cantidad: <span className='font-semibold'>{p.quantity}</span>
+                <span className='font-semibold'>Cantidad:</span> {p.quantity}
               </div>
               <div>
-                Monto Bs: <span className='font-semibold'>{p.montoBs}</span>
+                <span className='font-semibold'>Monto Bs:</span> {p.montoBs}
               </div>
               <div>
-                Monto USD: <span className='font-semibold'>{p.montoUsd}</span>
+                <span className='font-semibold'>Monto USD:</span> {p.montoUsd}
               </div>
-              <div>Método: {p.paymentMethod}</div>
-              <div>Transacción: {p.transactionDigits}</div>
               <div>
-                Estado: <span className='capitalize'>{p.status}</span>
+                <span className='font-semibold'>Método:</span> {p.paymentMethod}
+              </div>
+              <div>
+                <span className='font-semibold'>Transacción:</span>{' '}
+                {p.transactionDigits}
+              </div>
+              <div>
+                <span className='font-semibold'>Estado:</span>{' '}
+                <span className='capitalize'>{statusEs[p.status]}</span>
+              </div>
+              <div>
+                <span className='font-semibold'>Fecha:</span>{' '}
+                {formatDateES(p.date)}
               </div>
               <div>
                 {p.paymentScreenshot ? (
@@ -97,6 +177,8 @@ export const Dashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* Desktop Table */}
       <div className='hidden md:block overflow-x-auto bg-gray-900 rounded-lg shadow'>
         <table className='min-w-full divide-y divide-gray-700'>
           <thead className='bg-gray-800'>
@@ -122,21 +204,37 @@ export const Dashboard = () => {
               <th className='px-2 md:px-4 py-2 text-left font-medium'>
                 Estado
               </th>
+              <th className='px-2 md:px-4 py-2 text-left font-medium'>Fecha</th>
               <th className='px-2 md:px-4 py-2 text-left font-medium'>
                 Captura
               </th>
             </tr>
           </thead>
           <tbody className='divide-y divide-gray-700'>
-            {purchases.map((p) => (
-              <tr key={p.userId + p.transactionDigits}>
-                <td className='px-2 md:px-4 py-2'>{p.userId}</td>
+            {purchases.map((p, i) => (
+              <tr key={p.user.email + p.transactionDigits + i}>
+                <td className='px-2 md:px-4 py-2 flex items-center gap-2'>
+                  {p.user.name}
+                  <button
+                    className='ml-2 px-2 py-1 rounded bg-gray-700 text-xs text-white hover:bg-gray-600'
+                    onClick={() => setSelectedUser(p.user)}
+                    title='Ver detalles'
+                    type='button'
+                  >
+                    Detalles
+                  </button>
+                </td>
                 <td className='px-2 md:px-4 py-2'>{p.quantity}</td>
                 <td className='px-2 md:px-4 py-2'>{p.montoBs}</td>
                 <td className='px-2 md:px-4 py-2'>{p.montoUsd}</td>
                 <td className='px-2 md:px-4 py-2'>{p.paymentMethod}</td>
                 <td className='px-2 md:px-4 py-2'>{p.transactionDigits}</td>
-                <td className='px-2 md:px-4 py-2 capitalize'>{p.status}</td>
+                <td className='px-2 md:px-4 py-2 capitalize'>
+                  {statusEs[p.status]}
+                </td>
+                <td className='px-2 md:px-4 py-2 capitalize'>
+                  {formatDateES(p.date)}
+                </td>
                 <td className='px-2 md:px-4 py-2'>
                   {p.paymentScreenshot ? (
                     <img
@@ -157,6 +255,27 @@ export const Dashboard = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className='flex gap-2 my-4'>
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          className='px-3 py-1 rounded bg-gray-700 disabled:bg-gray-800'
+        >
+          Anterior
+        </button>
+        <span>
+          Página {page} de {pageCount}
+        </span>
+        <button
+          disabled={page === pageCount}
+          onClick={() => setPage((p) => Math.min(p + 1, pageCount))}
+          className='px-3 py-1 rounded bg-gray-700 disabled:bg-gray-800'
+        >
+          Siguiente
+        </button>
       </div>
 
       {/* Modal for large image */}
@@ -181,6 +300,55 @@ export const Dashboard = () => {
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 className='h-7 w-7 text-black'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M6 18L18 6M6 6l12 12'
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for user details */}
+      {selectedUser && (
+        <div
+          className='fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-80'
+          onClick={() => setSelectedUser(null)}
+        >
+          <div
+            className='relative bg-gray-900 p-6 rounded-xl shadow-xl min-w-[320px]'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className='text-lg font-bold mb-4'>Detalles del usuario</h2>
+            <div className='space-y-2'>
+              <div>
+                <span className='font-semibold'>Nombre:</span>{' '}
+                {selectedUser.name}
+              </div>
+              <div>
+                <span className='font-semibold'>Email:</span>{' '}
+                {selectedUser.email}
+              </div>
+              <div>
+                <span className='font-semibold'>Teléfono:</span>{' '}
+                {selectedUser.phone}
+              </div>
+            </div>
+            <button
+              className='absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1 hover:bg-opacity-100 transition'
+              onClick={() => setSelectedUser(null)}
+              aria-label='Cerrar'
+              type='button'
+            >
+              <svg
+                className='h-5 w-5 text-black'
                 fill='none'
                 viewBox='0 0 24 24'
                 stroke='currentColor'

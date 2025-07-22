@@ -1,6 +1,10 @@
 package form
 
-import "github.com/danielgtaylor/huma/v2"
+import (
+	"time"
+
+	"github.com/danielgtaylor/huma/v2"
+)
 
 type PurchaseInput struct {
 	Form Form
@@ -26,12 +30,19 @@ type CreatePurchaseRequest struct {
 }
 
 type Purchases struct {
-	UserID            string  `json:"userId"`
-	Quantity          int     `json:"quantity"`
-	MontoBs           float64 `json:"montoBs"`
-	MontoUSD          float64 `json:"montoUsd"`
-	PaymentMethod     string  `json:"paymentMethod"`
-	TransactionDigits string  `json:"transactionDigits"`
-	Status            string  `json:"status"`
-	PaymentScreenshot []byte  `json:"paymentScreenshot"`
+	User              User      `json:"user"`
+	Quantity          int       `json:"quantity"`
+	MontoBs           float64   `json:"montoBs"`
+	MontoUSD          float64   `json:"montoUsd"`
+	PaymentMethod     string    `json:"paymentMethod"`
+	TransactionDigits string    `json:"transactionDigits"`
+	Status            string    `json:"status"`
+	PaymentScreenshot []byte    `json:"paymentScreenshot"`
+	CreatedAt         time.Time `json:"date"`
+}
+
+type User struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
 }

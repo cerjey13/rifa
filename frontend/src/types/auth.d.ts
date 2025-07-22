@@ -6,7 +6,7 @@ interface User {
 }
 
 interface Purchase {
-  userId: string;
+  user: Omit<User, 'role'>;
   quantity: number;
   montoBs: number;
   montoUsd: number;
@@ -14,4 +14,5 @@ interface Purchase {
   transactionDigits: string;
   paymentScreenshot: string;
   status: string;
+  date: string;
 }
