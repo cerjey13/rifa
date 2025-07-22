@@ -20,3 +20,9 @@ type PurchaseOutput struct {
 type PurchasesOutput struct {
 	Body []form.Purchases
 }
+
+type GetAllPurchases struct {
+	PurchaseStatus string `query:"status"`
+	Page           int    `query:"page" doc:"pagination value"`
+	ItemCount      int    `query:"perPage"`
+}

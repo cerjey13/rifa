@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
@@ -13,7 +14,10 @@ import (
 
 type Service interface {
 	Create(ctx context.Context, req *form.CreatePurchaseRequest) error
-	GetAll(ctx context.Context) ([]*types.Purchase, error)
+	GetAll(
+		ctx context.Context,
+		filters dto.GetAllPurchases,
+	) ([]form.Purchases, error)
 }
 
 type service struct {
@@ -55,6 +59,9 @@ func (s *service) Create(
 	return nil
 }
 
-func (s *service) GetAll(ctx context.Context) ([]*types.Purchase, error) {
-	return s.repo.GetAll(ctx)
+func (s *service) GetAll(
+	ctx context.Context,
+	filters dto.GetAllPurchases,
+) ([]form.Purchases, error) {
+	return s.repo.GetAll(ctx, filters)
 }
