@@ -1,31 +1,43 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Admin, Resource } from 'react-admin';
-import simpleRestProvider from 'ra-data-simple-rest';
+import { Admin, Layout, Menu, Resource, type LayoutProps } from 'react-admin';
+import { PurchaseList } from '@src/admin/components/Purchases';
+import { Dashboard } from './components/Dashboard';
+import { FaShoppingCart, FaHome } from 'react-icons/fa';
+import { AiOutlineLogout } from 'react-icons/ai';
+import { useAuth } from '@src/context/useAuth';
 
-const dataProvider = simpleRestProvider(import.meta.env.VITE_API_URL || '');
-
-const AdminApp = () => (
-  <Admin dataProvider={dataProvider}>
-    <Resource name='tickets' />
-    {/* other admin resources */}
-  </Admin>
-);
-
-const App = () => {
+const CustomMenu = () => {
+  const { logout } = useAuth();
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path='/admin/*'
-          element={
-            // TODO: Add auth guard here to protect admin routes
-            <AdminApp />
-          }
-        />
-        <Route path='*' element={<Navigate to='/' replace />} />
-      </Routes>
-    </BrowserRouter>
+    <Menu>
+      <Menu.DashboardItem
+        tabIndex={1}
+        to='/dashboard'
+        primaryText='Compras'
+        leftIcon={<FaShoppingCart />}
+      />
+      <Menu.DashboardItem
+        tabIndex={2}
+        to='/'
+        primaryText='Pagina Principal'
+        leftIcon={<FaHome />}
+      />
+      <Menu.DashboardItem
+        tabIndex={3}
+        onClick={logout}
+        primaryText='Cerrar Sesion'
+        leftIcon={<AiOutlineLogout />}
+      />
+    </Menu>
   );
 };
 
-export default App;
+const CustomLayout = (props: LayoutProps) => (
+  <Layout {...props} menu={CustomMenu} className='Menu' />
+);
+
+const AdminApp = () => (
+  <Admin dashboard={Dashboard} layout={CustomLayout}>
+    <Resource name='dashboard' list={PurchaseList} />
+  </Admin>
+);
+export default AdminApp;

@@ -8,7 +8,7 @@ import (
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
-	"rifa/backend/api/httpx/middleware"
+	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/auth"
 	database "rifa/backend/pkg/db"
 
@@ -74,7 +74,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 					Value:    user.AccessToken,
 					Path:     "/",
 					HttpOnly: true,
-					Secure:   true,
+					Secure:   false,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(7 * 24 * time.Hour),
 				},
@@ -89,7 +89,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 			Method:        http.MethodGet,
 			Path:          "/api/me",
 			Summary:       "Get current user",
-			Middlewares:   huma.Middlewares{middleware.RequireSession(api)},
+			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 			DefaultStatus: http.StatusOK,
 		},
 		func(ctx context.Context, _ *struct{}) (*dto.MeOutput, error) {

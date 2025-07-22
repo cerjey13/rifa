@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { AppRouter } from './AppRouter';
-import './index.css';
-import { AuthProvider } from './context/AuthProvider';
-import { ModalProvider } from './context/ModalProvider';
+import { AppRouter } from '@src/AppRouter';
+import { AuthProvider } from '@src/context/AuthProvider';
+import { ModalProvider } from '@src/context/ModalProvider';
+import '@src/index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

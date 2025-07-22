@@ -26,11 +26,12 @@ type CreatePurchaseRequest struct {
 }
 
 type Purchases struct {
-	UserID            string
-	Quantity          int
-	MontoBs           float64
-	MontoUSD          float64
-	PaymentMethod     string
-	TransactionDigits string
-	PaymentScreenshot []byte
+	UserID            string  `json:"userId"`
+	Quantity          int     `json:"quantity"`
+	MontoBs           float64 `json:"montoBs"`
+	MontoUSD          float64 `json:"montoUsd"`
+	PaymentMethod     string  `json:"paymentMethod"`
+	TransactionDigits string  `json:"transactionDigits"`
+	Status            string  `json:"status"`
+	PaymentScreenshot []byte  `json:"paymentScreenshot"`
 }

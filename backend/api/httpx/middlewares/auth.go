@@ -1,6 +1,7 @@
-package middleware
+package mymiddlewares
 
 import (
+	"log"
 	"net/http"
 
 	"rifa/backend/pkg/utils"
@@ -14,28 +15,29 @@ func RequireSession(
 	return func(ctx huma.Context, next func(ctx huma.Context)) {
 		cookie, err := huma.ReadCookie(ctx, "session")
 		if err != nil || cookie == nil || cookie.Value == "" {
+			log.Println(err)
 			_ = huma.WriteErr(
 				api,
 				ctx,
 				http.StatusUnauthorized,
 				"Unauthenticated",
-				nil,
+				err,
 			)
 			return
 		}
 
 		claims, err := utils.ValidateJWT(cookie.Value)
 		if err != nil {
+			log.Println(err)
 			_ = huma.WriteErr(
 				api,
 				ctx,
 				http.StatusUnauthorized,
 				"Invalid or expired session",
-				nil,
+				err,
 			)
 			return
 		}
-
 		ctx = huma.WithValue(ctx, "claims", claims)
 		next(ctx)
 	}
