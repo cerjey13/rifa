@@ -35,15 +35,15 @@ func main() {
 		log.Fatalf("failed to start the db: %v", err)
 	}
 	dbAdapter := database.NewPgxpoolAdapter(db)
-	server, err := core.NewHttpServer(dbAdapter, core.HttpServerOptions{
+	front := http.FS(dist)
+	server, err := core.NewHttpServer(dbAdapter, front, core.HttpServerOptions{
 		Logger: logger,
-		Host:   "localhost",
+		Host:   cfg.Host,
 		Port:   cfg.Port,
 	})
 	if err != nil {
 		log.Fatal("failed to config the server")
 	}
-	server.Handle("/*", http.FileServer(http.FS(dist)))
 
 	log.Println("Rifa backend listening on :" + cfg.Port)
 	log.Fatal(server.ListenAndServe())

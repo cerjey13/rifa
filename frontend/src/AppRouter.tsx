@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import AdminApp from '@src/admin/App';
+import { AdminApp } from '@src/admin/Admin';
 import { LandingPage } from '@src/landing/LandingPage';
 
 export const AppRouter = () => {

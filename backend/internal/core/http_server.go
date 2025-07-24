@@ -66,15 +66,19 @@ type HttpServer struct {
 	logger  *slog.Logger
 }
 
-func NewHttpServer(db db.DB, opts HttpServerOptions) (*HttpServer, error) {
+func NewHttpServer(
+	db db.DB,
+	front http.FileSystem,
+	opts HttpServerOptions,
+) (*HttpServer, error) {
 	if opts.Logger == nil {
 		return nil, fmt.Errorf("logger is required")
 	}
 	router := chi.NewRouter()
 	router.Use(chimdw.Logger)
 	router.Use(httprate.LimitAll(10, 1*time.Second))
-	router.Use(chimdw.SupressNotFound(router))
-	router.Use(chimdw.Compress(4, "application/json"))
+	router.NotFound(spaHandler(front))
+	router.Use(chimdw.Compress(4))
 	router.Use(chimdw.Recoverer)
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
@@ -94,4 +98,20 @@ func NewHttpServer(db db.DB, opts HttpServerOptions) (*HttpServer, error) {
 	}
 
 	return server, nil
+}
+
+func spaHandler(staticFS http.FileSystem) http.HandlerFunc {
+	fileServer := http.FileServer(staticFS)
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path[1:]
+		f, err := staticFS.Open(path)
+		if err == nil {
+			f.Close()
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+		// fallback to index.html
+		r.URL.Path = "/"
+		fileServer.ServeHTTP(w, r)
+	}
 }

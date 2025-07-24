@@ -16,6 +16,7 @@ type PurchaseRepository interface {
 		ctx context.Context,
 		filters dto.GetAllPurchases,
 	) ([]form.Purchases, error)
+	UpdateStatus(ctx context.Context, purchaseID, status string) error
 }
 
 type purchaseRepo struct{ db database.DB }
@@ -50,7 +51,7 @@ func (r *purchaseRepo) GetAll(
 ) ([]form.Purchases, error) {
 	var args []interface{}
 	query := `SELECT u.name, u.email, u.phone,
-    p.quantity, p.monto_bs, p.monto_usd, p.payment_method,
+    p.id, p.quantity, p.monto_bs, p.monto_usd, p.payment_method,
     p.transaction_digits, p.payment_screenshot, p.status, p.created_at
 	FROM purchases p JOIN users u ON p.user_id = u.id `
 
@@ -88,6 +89,7 @@ func (r *purchaseRepo) GetAll(
 			&p.User.Name,
 			&p.User.Email,
 			&p.User.Phone,
+			&p.ID,
 			&p.Quantity,
 			&p.MontoBs,
 			&p.MontoUSD,
@@ -105,4 +107,17 @@ func (r *purchaseRepo) GetAll(
 	}
 
 	return purchases, nil
+}
+
+func (r *purchaseRepo) UpdateStatus(
+	ctx context.Context,
+	purchaseID,
+	status string,
+) error {
+	fmt.Println(purchaseID, status)
+	err := r.db.ExecContext(ctx,
+		`UPDATE purchases SET status = $1 WHERE id = $2`,
+		status, purchaseID,
+	)
+	return err
 }

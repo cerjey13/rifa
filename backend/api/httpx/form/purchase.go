@@ -31,6 +31,7 @@ type CreatePurchaseRequest struct {
 
 type Purchases struct {
 	User              User      `json:"user"`
+	ID                string    `json:"id"`
 	Quantity          int       `json:"quantity"`
 	MontoBs           float64   `json:"montoBs"`
 	MontoUSD          float64   `json:"montoUsd"`

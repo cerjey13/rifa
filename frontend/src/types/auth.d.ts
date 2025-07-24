@@ -5,8 +5,11 @@ interface User {
   role: 'admin' | 'user';
 }
 
+type PurchaseStatus = 'pending' | 'verified' | 'cancelled';
+
 interface Purchase {
   user: Omit<User, 'role'>;
+  id: string;
   quantity: number;
   montoBs: number;
   montoUsd: number;

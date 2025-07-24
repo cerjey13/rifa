@@ -26,3 +26,10 @@ type GetAllPurchases struct {
 	Page           int    `query:"page" doc:"pagination value"`
 	ItemCount      int    `query:"perPage"`
 }
+
+type UpdatePurchase struct {
+	ID   string `query:"id"`
+	Body struct {
+		Status string `json:"status"`
+	}
+}
