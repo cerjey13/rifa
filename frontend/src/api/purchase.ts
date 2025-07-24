@@ -23,3 +23,37 @@ export async function submitPurchase(purchase: {
     throw new Error(await res.text());
   }
 }
+
+type PageParams = { page: number; perPage: number; status: string };
+
+export async function fetchPurchases(params: PageParams): Promise<Purchase[]> {
+  const urlParams = new URLSearchParams();
+  if (params.status && params.status !== 'all')
+    urlParams.append('status', params.status);
+  urlParams.append('page', String(params.page));
+  urlParams.append('perPage', String(params.perPage));
+
+  const res = await fetch(`/api/purchases?${urlParams.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Network error');
+  return res.json();
+}
+
+export async function updatePurchaseStatus({
+  transactionID,
+  status,
+}: {
+  transactionID: string;
+  status: PurchaseStatus;
+}): Promise<void> {
+  const res = await fetch(`/api/purchases?id=${transactionID}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error('Network error');
+}

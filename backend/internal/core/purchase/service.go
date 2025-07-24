@@ -18,6 +18,7 @@ type Service interface {
 		ctx context.Context,
 		filters dto.GetAllPurchases,
 	) ([]form.Purchases, error)
+	UpdateStatus(ctx context.Context, purchaseID string, status string) error
 }
 
 type service struct {
@@ -64,4 +65,12 @@ func (s *service) GetAll(
 	filters dto.GetAllPurchases,
 ) ([]form.Purchases, error) {
 	return s.repo.GetAll(ctx, filters)
+}
+
+func (s *service) UpdateStatus(
+	ctx context.Context,
+	purchaseID,
+	status string,
+) error {
+	return s.repo.UpdateStatus(ctx, purchaseID, status)
 }

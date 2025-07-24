@@ -2,7 +2,9 @@ package httpx
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"rifa/backend/api/httpx/dto"
@@ -91,4 +93,30 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		return &output, nil
 	})
 
+	huma.Register(
+		api,
+		huma.Operation{
+			OperationID:   "updatePurchase",
+			Method:        http.MethodPatch,
+			Path:          "/api/purchases",
+			Summary:       "Update a purchase status (admin only)",
+			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			DefaultStatus: http.StatusNoContent,
+		},
+		func(
+			ctx context.Context,
+			input *dto.UpdatePurchase,
+		) (*struct{}, error) {
+			fmt.Println(input)
+			err := srv.UpdateStatus(ctx, input.ID, input.Body.Status)
+			if err != nil {
+				log.Println(err)
+				return nil, huma.Error500InternalServerError(
+					"Failed to update purchase",
+				)
+			}
+
+			return nil, nil
+		},
+	)
 }

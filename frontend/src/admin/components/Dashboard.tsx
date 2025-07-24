@@ -1,31 +1,16 @@
 import { useState } from 'react';
 import { PurchaseFilters } from './PurchaseFilters';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatDateES } from '@src/utils/dates';
+import { fetchPurchases, updatePurchaseStatus } from '@src/api/purchase';
+import { toast } from 'sonner';
 
 type Filters = { status: string };
-type PageParams = { page: number; perPage: number } & Filters;
 
 const statusEs: Record<string, string> = {
   pending: 'pendiente',
   verified: 'verificado',
   cancelled: 'cancelado',
-};
-
-const fetchPurchases = async (params: PageParams): Promise<Purchase[]> => {
-  const urlParams = new URLSearchParams();
-  if (params.status && params.status !== 'all')
-    urlParams.append('status', params.status);
-  urlParams.append('page', String(params.page));
-  urlParams.append('perPage', String(params.perPage));
-
-  const res = await fetch(`/api/purchases?${urlParams.toString()}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
-  });
-  if (!res.ok) throw new Error('Network error');
-  return res.json();
 };
 
 export const Dashboard: React.FC = () => {
@@ -35,6 +20,10 @@ export const Dashboard: React.FC = () => {
   );
   const [filters, setFilters] = useState<Filters>({ status: '' });
   const [page, setPage] = useState<number>(1);
+  const [editingStatus, setEditingStatus] = useState<
+    Record<string, PurchaseStatus>
+  >({});
+
   const perPage = 10;
 
   const {
@@ -46,6 +35,19 @@ export const Dashboard: React.FC = () => {
     queryKey: ['purchases', { ...filters, page, perPage }],
     queryFn: () => fetchPurchases({ ...filters, page, perPage }),
     placeholderData: (prevData) => prevData,
+  });
+  const queryClient = useQueryClient();
+
+  const { mutate: changeStatus, isPending } = useMutation({
+    mutationFn: updatePurchaseStatus,
+    onSuccess: (_, variables) => {
+      toast.success(`Estado actualizado a "${statusEs[variables.status]}"`);
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+    },
+    onError: (error: Error) => {
+      console.error('Update failed:', error);
+      toast.error('No se pudo actualizar el estado. Intenta nuevamente.');
+    },
   });
 
   const pageCount = Math.ceil(purchases.length / perPage);
@@ -61,10 +63,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className='p-2 sm:p-4 md:p-6'>
-      <h1 className='text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6'>
-        Resumen de compras
-      </h1>
-
       {/* Stats - mobile stacks, desktop grid */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 mb-4 md:mb-8'>
         <div className='bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center'>
@@ -151,7 +149,21 @@ export const Dashboard: React.FC = () => {
               </div>
               <div>
                 <span className='font-semibold'>Estado:</span>{' '}
-                <span className='capitalize'>{statusEs[p.status]}</span>
+                <select
+                  value={editingStatus[p.id] ?? p.status}
+                  onChange={(e) =>
+                    setEditingStatus((prev) => ({
+                      ...prev,
+                      [p.id]: e.target.value as PurchaseStatus,
+                    }))
+                  }
+                  disabled={isPending}
+                  className='bg-gray-800 text-white rounded px-2 py-1'
+                >
+                  <option value='pending'>Pendiente</option>
+                  <option value='verified'>Verificado</option>
+                  <option value='cancelled'>Cancelado</option>
+                </select>
               </div>
               <div>
                 <span className='font-semibold'>Fecha:</span>{' '}
@@ -229,8 +241,45 @@ export const Dashboard: React.FC = () => {
                 <td className='px-2 md:px-4 py-2'>{p.montoUsd}</td>
                 <td className='px-2 md:px-4 py-2'>{p.paymentMethod}</td>
                 <td className='px-2 md:px-4 py-2'>{p.transactionDigits}</td>
-                <td className='px-2 md:px-4 py-2 capitalize'>
-                  {statusEs[p.status]}
+                <td className='px-2 md:px-4 py-2'>
+                  <select
+                    value={editingStatus[p.id] ?? p.status}
+                    onChange={(e) =>
+                      setEditingStatus((prev) => ({
+                        ...prev,
+                        [p.id]: e.target.value as PurchaseStatus,
+                      }))
+                    }
+                    disabled={isPending}
+                    className='bg-gray-800 text-white capitalize rounded px-2 py-1'
+                  >
+                    {Object.entries(statusEs).map(([value, label]) => (
+                      <option className='capitalize' value={value} key={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  {editingStatus[p.id] && editingStatus[p.id] !== p.status && (
+                    <button
+                      className='mt-1 px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
+                      onClick={() => {
+                        console.log(editingStatus[p.id]);
+                        changeStatus({
+                          transactionID: p.id,
+                          status: editingStatus[p.id],
+                        });
+                        setEditingStatus((prev) => {
+                          const copy = { ...prev };
+                          delete copy[p.id];
+                          return copy;
+                        });
+                      }}
+                      disabled={isPending}
+                      type='button'
+                    >
+                      Confirmar
+                    </button>
+                  )}
                 </td>
                 <td className='px-2 md:px-4 py-2 capitalize'>
                   {formatDateES(p.date)}
