@@ -25,8 +25,7 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
 # Copy backend source code
-COPY backend/cmd ./cmd
-COPY backend/internal ./internal
+COPY backend/ ./
 
 # Copy frontend build output from frontend-builder into backend embed folder
 COPY --from=frontend-builder /app/frontend/dist ./cmd/app/dist
@@ -47,4 +46,4 @@ COPY --from=backend-builder /app/bin/app ./app
 
 EXPOSE 8080
 
-CMD ["./api"]
+CMD ["./app"]
