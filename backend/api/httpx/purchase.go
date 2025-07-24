@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -107,7 +106,6 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			ctx context.Context,
 			input *dto.UpdatePurchase,
 		) (*struct{}, error) {
-			fmt.Println(input)
 			err := srv.UpdateStatus(ctx, input.ID, input.Body.Status)
 			if err != nil {
 				log.Println(err)

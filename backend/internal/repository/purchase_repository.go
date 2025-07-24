@@ -114,7 +114,6 @@ func (r *purchaseRepo) UpdateStatus(
 	purchaseID,
 	status string,
 ) error {
-	fmt.Println(purchaseID, status)
 	err := r.db.ExecContext(ctx,
 		`UPDATE purchases SET status = $1 WHERE id = $2`,
 		status, purchaseID,

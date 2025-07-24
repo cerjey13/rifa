@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { fetchUserTicketCount } from '@src/api/tickets';
+import { useQuery } from '@tanstack/react-query';
 
 interface TicketsModalProps {
   userEmail: string;
@@ -6,40 +7,25 @@ interface TicketsModalProps {
 }
 
 export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
-  const [loading, setLoading] = useState(false);
-  const [ticketsCount, setTicketsCount] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: count,
+    isLoading,
+    error,
+  } = useQuery<number, Error>({
+    queryKey: ['ticket-count', userEmail],
+    queryFn: () => fetchUserTicketCount(userEmail),
+    enabled: !!userEmail,
+  });
 
-  useEffect(() => {
-    const fetchTicketsCount = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // const response = await fetch(
-        //   `/api/tickets?email=${encodeURIComponent(userEmail)}`,
-        // );
-        // if (!response.ok) throw new Error('Error fetching tickets');
-
-        // const data = await response.json();
-        setTicketsCount(100);
-      } catch (error) {
-        setError('No se pudo obtener la cantidad de números comprados.');
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTicketsCount();
-  }, [userEmail]);
+  if (!userEmail) return null;
 
   return (
     <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4'>
-      <div className='bg-gray-800 p-6 rounded-md text-white max-w-sm w-full relative'>
+      <div className='bg-gray-800 p-6 rounded-md text-white max-w-xs w-full relative shadow-lg'>
         <div className='flex items-center justify-between mb-4'>
-          <h2 className='font-bold uppercase text-lg'>Mis números comprados</h2>
-
+          <h2 className='font-bold uppercase text-base sm:text-lg'>
+            Mis números comprados
+          </h2>
           <button
             onClick={onClose}
             aria-label='Cerrar'
@@ -63,19 +49,19 @@ export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
         </div>
         <hr className='border-gray-700 mb-4' />
 
-        {loading && (
-          <p className='mb-4 text-center text-yellow-400 font-semibold'>
+        {isLoading ? (
+          <p className='text-center text-gray-400 text-base sm:text-lg'>
             Cargando...
           </p>
-        )}
-
-        {error && (
-          <p className='mb-4 text-red-500 text-center font-semibold'>{error}</p>
-        )}
-
-        {!loading && ticketsCount !== null && (
+        ) : error ? (
+          <p className='text-center text-red-500 text-base sm:text-lg'>
+            Error al cargar tickets
+          </p>
+        ) : (
           <p className='text-center text-lg'>
-            Has comprado <strong>{ticketsCount}</strong> número(s).
+            Has comprado{' '}
+            <strong className='text-orange-400 text-2xl'>{count}</strong>{' '}
+            número(s).
           </p>
         )}
       </div>

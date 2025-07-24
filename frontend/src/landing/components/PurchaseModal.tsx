@@ -13,8 +13,8 @@ export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
     'quantity',
   );
   const [quantity, setQuantity] = useState<number>(2);
-  const [montoBs, setMontoBs] = useState<string>('40');
-  const [montoUSD, setMontoUSD] = useState<string>('');
+  const [montoBs, setMontoBs] = useState<string>('75');
+  const [montoUSD, setMontoUSD] = useState<string>('0.5');
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const handleQuantityNext = (
     qty: number,
@@ -44,8 +44,8 @@ export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
         {step === 'quantity' && (
           <QuantitySelector
             min={2}
-            priceBS={40}
-            conversionRate={0.009}
+            priceBS={75}
+            priceUsd={0.5}
             onClose={handleClose}
             onNext={handleQuantityNext}
           />
