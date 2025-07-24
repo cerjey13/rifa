@@ -44,6 +44,9 @@ RUN apk add --no-cache ca-certificates
 # Copy the backend binary
 COPY --from=backend-builder /app/bin/app ./app
 
+# Copy migrations folder
+COPY --from=backend-builder /app/migrations ./migrations
+
 EXPOSE 8080
 
 CMD ["./app"]

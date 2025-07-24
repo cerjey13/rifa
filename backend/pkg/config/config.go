@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Port        string `env:"PORT" envDefault:"8080"`
-	Host        string `env:"HOST" envDefault:"localhost"`
+	Host        string `env:"HOST" envDefault:"0.0.0.0"`
 	Env         string `env:"APP_ENV" envDefault:"development"`
 	JwtSecret   string `env:"JWT_SECRET"`
 	DatabaseUrl string `env:"DATABASE_URL"`
