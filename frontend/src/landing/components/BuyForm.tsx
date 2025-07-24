@@ -138,18 +138,15 @@ export const BuyForm = ({
               <>
                 <p>
                   <span className='font-semibold'>Cuenta:</span>{' '}
-                  <CopyableText
-                    text='BANESCO 0134-4567-1234'
-                    copyText='013445671234'
-                  />
+                  <CopyableText text='BANESCO 0134' copyText='BANESCO' />
                 </p>
                 <p>
                   <span className='font-semibold'>Cédula:</span>{' '}
-                  <CopyableText text='29683952' />
+                  <CopyableText text='30606459' />
                 </p>
                 <p>
                   <span className='font-semibold'>Teléfono:</span>{' '}
-                  <CopyableText text='04121234567' />
+                  <CopyableText text='04141551801' />
                 </p>
               </>
             )}

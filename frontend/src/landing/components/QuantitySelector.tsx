@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
 interface QuantitySelectorProps {
-  min?: number;
+  min: number;
   max?: number;
-  priceBS?: number;
-  conversionRate?: number;
+  priceBS: number;
+  priceUsd: number;
   onClose: () => void;
   onNext: (quantity: number, montoBs: string, montoUSD: string) => void;
 }
@@ -19,15 +19,15 @@ function calculateMonto(
 
 export const QuantitySelector = ({
   min = 2,
-  max = 100,
-  priceBS = 40,
-  conversionRate = 0.009,
+  max = 500,
+  priceBS,
+  priceUsd,
   onClose,
   onNext,
 }: QuantitySelectorProps) => {
   const [quantity, setQuantity] = useState<number>(min);
-  const [montoUSD, setMonto] = useState<string>(
-    calculateMonto(quantity, priceBS, conversionRate),
+  const [montoUSD, setMontoUSD] = useState<string>(
+    calculateMonto(quantity, priceUsd, 1),
   );
   const [montoBs, setMontoBs] = useState<string>(
     calculateMonto(quantity, priceBS, 1),
@@ -35,12 +35,12 @@ export const QuantitySelector = ({
 
   const increment = () => {
     setQuantity((q) => Math.min(q + 1, max));
-    setMonto(calculateMonto(quantity + 1, priceBS, conversionRate));
+    setMontoUSD(calculateMonto(quantity + 1, priceUsd, 1));
     setMontoBs(calculateMonto(quantity + 1, priceBS, 1));
   };
   const decrement = () => {
     setQuantity((q) => Math.max(q - 1, min));
-    setMonto(calculateMonto(quantity - 1, priceBS, conversionRate));
+    setMontoUSD(calculateMonto(quantity - 1, priceUsd, 1));
     setMontoBs(calculateMonto(quantity - 1, priceBS, 1));
   };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,9 +61,7 @@ export const QuantitySelector = ({
       </p>
       <div className='flex justify-between text-base font-semibold'>
         <span>Monto BS: {calculateMonto(quantity, priceBS, 1)}</span>
-        <span>
-          Monto ($): {calculateMonto(quantity, priceBS, conversionRate)}
-        </span>
+        <span>Monto ($): {calculateMonto(quantity, priceUsd, 1)}</span>
       </div>
 
       <div className='flex items-center justify-center gap-4'>

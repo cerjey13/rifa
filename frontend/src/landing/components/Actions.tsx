@@ -50,7 +50,7 @@ export const Actions = () => {
           onClick={handleCheckNumbersClick}
           className='bg-[#272525] hover:bg-gray-800 text-white font-bold py-3 rounded transition'
         >
-          🔍 MIS NÚMEROS COMPRADOS
+          🔍 MIS BOLETOS COMPRADOS
         </button>
         {ticketModalOpen && user && (
           <TicketsModal
@@ -58,9 +58,6 @@ export const Actions = () => {
             onClose={() => setTicketModalOpen(false)}
           />
         )}
-        {/* <button className='bg-[#272525] hover:bg-gray-800 text-white font-bold py-3 rounded transition'>
-          ⚡ TICKETS PARTICIPANDO
-        </button> */}
       </div>
     </>
   );

@@ -1,17 +1,25 @@
 export const PrizeInfo = () => (
   <section className='text-center p-4 my-4 space-y-3 max-w-lg mx-auto text-brandLightGray'>
     <h1 className='text-2xl sm:text-3xl font-extrabold leading-tight text-white uppercase'>
-      Llévate Millón Mañana Viernes
+      🍀 Prueba tu suerte 🍀
     </h1>
-    <p className='text-lg sm:text-xl text-yellow-400 font-semibold'>
-      🤑 LLÉVATE 1.000$ por 40 BS 😍
+    <p className='text-lg sm:text-xl text-white font-semibold'>
+      Participa y gana!
     </p>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>🏆 Premios:</span>
-      <span>🥇 1er Premio: 1.000$ - 10:00 PM</span>
     </p>
-    <p className='text-brandLightGray italic'>
-      Para los que querían otra oportunidad así!
+    <p className='text-white font-medium flex justify-center gap-2 items-center'>
+      <span>🥇 1er Premio: New Outlook II 🏍️ 0km 2025</span>
+    </p>
+    <p className='text-white font-medium flex justify-center gap-2 items-center'>
+      <span>🥈 2do Premio: El comprador de más boletos 500$💸</span>
+    </p>
+    <p className='text-white font-medium flex justify-center gap-2 items-center'>
+      <span>
+        🥉 3er y 🏅4to Premio: Por aproximación (un número o antes o uno después
+        de el número ganador) 50$ 💵
+      </span>
     </p>
   </section>
 );

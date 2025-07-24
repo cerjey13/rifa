@@ -29,18 +29,12 @@ export const Header = () => {
           )}
 
           <a
-            href='https://wa.me/your-number'
+            href='https://wa.me/+584141551801'
             target='_blank'
             rel='noreferrer'
             className='hover:text-[#F97316] transition-colors'
           >
             Whatsapp
-          </a>
-          <a
-            href='/events'
-            className='hover:text-brandOrange transition-colors'
-          >
-            Eventos
           </a>
 
           {user && (
