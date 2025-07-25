@@ -17,8 +17,12 @@ type Service interface {
 	GetAll(
 		ctx context.Context,
 		filters dto.GetAllPurchases,
-	) ([]form.Purchases, error)
+	) ([]form.Purchases, int, error)
 	UpdateStatus(ctx context.Context, purchaseID string, status string) error
+	GetLeaderboard(
+		ctx context.Context,
+		filters dto.GetMostPurchases,
+	) ([]form.MostPurchases, error)
 }
 
 type service struct {
@@ -63,7 +67,7 @@ func (s *service) Create(
 func (s *service) GetAll(
 	ctx context.Context,
 	filters dto.GetAllPurchases,
-) ([]form.Purchases, error) {
+) ([]form.Purchases, int, error) {
 	return s.repo.GetAll(ctx, filters)
 }
 
@@ -73,4 +77,11 @@ func (s *service) UpdateStatus(
 	status string,
 ) error {
 	return s.repo.UpdateStatus(ctx, purchaseID, status)
+}
+
+func (s *service) GetLeaderboard(
+	ctx context.Context,
+	filters dto.GetMostPurchases,
+) ([]form.MostPurchases, error) {
+	return s.repo.GetLeaderboard(ctx, filters)
 }

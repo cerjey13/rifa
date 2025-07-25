@@ -1,4 +1,5 @@
 interface User {
+  id: string;
   email: string;
   name: string;
   phone: string;
@@ -19,3 +20,8 @@ interface Purchase {
   status: string;
   date: string;
 }
+
+type MostPurchases = {
+  user: Omit<User, 'role'>;
+  quantity: number;
+};

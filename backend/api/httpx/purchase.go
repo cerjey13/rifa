@@ -82,13 +82,33 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		ctx context.Context,
 		input *dto.GetAllPurchases,
 	) (*dto.PurchasesOutput, error) {
-		purchases, err := srv.GetAll(ctx, *input)
+		purchases, total, err := srv.GetAll(ctx, *input)
 		if err != nil {
 			return nil, huma.Error500InternalServerError("Failed to get purchases")
 		}
 
-		output := dto.PurchasesOutput{}
-		output.Body = purchases
+		output := dto.PurchasesOutput{Body: purchases, Total: total}
+		return &output, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "listPurchases",
+		Method:        http.MethodGet,
+		Path:          "/api/purchases/leaderboard",
+		Summary:       "List purchases by user with the most buyed",
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+		DefaultStatus: http.StatusOK,
+	}, func(
+		ctx context.Context,
+		input *dto.GetMostPurchases,
+	) (*dto.MostPurchasesOutput, error) {
+		leaderboard, err := srv.GetLeaderboard(ctx, *input)
+		if err != nil {
+			return nil, huma.Error500InternalServerError("Failed to get purchases")
+		}
+
+		output := dto.MostPurchasesOutput{}
+		output.Body = leaderboard
 		return &output, nil
 	})
 

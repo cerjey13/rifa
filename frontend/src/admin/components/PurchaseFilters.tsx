@@ -22,9 +22,14 @@ export const PurchaseFilters: React.FC<PurchaseFiltersProps> = ({
   };
 
   return (
-    <div className='flex gap-4 p-4 bg-gray-900 rounded-2xl shadow mb-4'>
+    <div
+      className='
+        flex flex-col gap-3 p-4 bg-gray-900 rounded-2xl shadow mb-4
+        sm:flex-row sm:items-center sm:gap-4
+      '
+    >
       <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className='w-40 bg-gray-900 text-white border-gray-700'>
+        <SelectTrigger className='w-full sm:w-auto sm:min-w-[160px] sm:max-w-xs bg-gray-900 text-white border-gray-700'>
           <SelectValue placeholder='Seleccionar estado' />
         </SelectTrigger>
         <SelectContent className='bg-gray-900 text-white border-gray-700'>
@@ -36,7 +41,7 @@ export const PurchaseFilters: React.FC<PurchaseFiltersProps> = ({
       </Select>
       <Button
         onClick={handleApply}
-        className='bg-gray-700 text-white hover:bg-gray-600'
+        className='w-full sm:w-auto bg-gray-700 text-white hover:bg-gray-600'
       >
         Aplicar
       </Button>
