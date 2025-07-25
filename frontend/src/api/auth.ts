@@ -29,3 +29,18 @@ export async function login(data: { email: string; password: string }) {
   if (!res.ok) throw new Error(await res.text());
   return await res.json();
 }
+
+export async function fetchCurrentUser(): Promise<User> {
+  const res = await fetch('/api/me', { credentials: 'include' });
+  if (!res.ok) throw new Error('Not authenticated');
+  return res.json();
+}
+
+export async function logout() {
+  const res = await fetch('/api/logout', {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return;
+}

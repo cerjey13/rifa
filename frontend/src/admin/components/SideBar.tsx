@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
         </nav>
         <button
           tabIndex={3}
-          onClick={logout}
+          onClick={() => logout.mutate()}
           className='flex items-center gap-3 px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 font-bold transition-colors mt-auto'
         >
           <AiOutlineLogout />

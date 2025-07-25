@@ -4,11 +4,10 @@ import { useAuth } from '@src/context/useAuth';
 import { useModal } from '@src/context/useModal';
 
 export const Header = () => {
-  const { user, setUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { modalOpen, isRegister, openLoginModal, closeModal } = useModal();
 
-  const login = (user: User) => {
-    setUser(user);
+  const login = () => {
     closeModal();
   };
 
@@ -44,7 +43,10 @@ export const Header = () => {
                   Dashboard
                 </a>
               )}
-              <button onClick={logout} className='hover:text-brandOrange'>
+              <button
+                onClick={() => logout.mutate()}
+                className='hover:text-brandOrange'
+              >
                 Cerrar sesión
               </button>
             </>
