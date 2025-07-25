@@ -18,13 +18,22 @@ type PurchaseOutput struct {
 }
 
 type PurchasesOutput struct {
-	Body []form.Purchases
+	Body  []form.Purchases
+	Total int `header:"X-Total-Count"`
+}
+type MostPurchasesOutput struct {
+	Body []form.MostPurchases
 }
 
 type GetAllPurchases struct {
 	PurchaseStatus string `query:"status"`
 	Page           int    `query:"page" doc:"pagination value"`
 	ItemCount      int    `query:"perPage"`
+}
+
+type GetMostPurchases struct {
+	Page      int `query:"page" doc:"pagination value"`
+	ItemCount int `query:"perPage"`
 }
 
 type UpdatePurchase struct {

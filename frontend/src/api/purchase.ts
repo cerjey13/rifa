@@ -24,14 +24,18 @@ export async function submitPurchase(purchase: {
   }
 }
 
-type PageParams = { page: number; perPage: number; status: string };
+type PageParams = { page: number; perPage: number };
+type PurchasesParams = PageParams & { status: string };
 
-export async function fetchPurchases(params: PageParams): Promise<Purchase[]> {
+export async function fetchPurchases(
+  params: PurchasesParams,
+): Promise<{ purchase: Purchase[]; total: number }> {
   const urlParams = new URLSearchParams();
-  if (params.status && params.status !== 'all')
+  if (params.status && params.status !== 'all') {
     urlParams.append('status', params.status);
-  urlParams.append('page', String(params.page));
-  urlParams.append('perPage', String(params.perPage));
+    urlParams.append('page', String(params.page));
+    urlParams.append('perPage', String(params.perPage));
+  }
 
   const res = await fetch(`/api/purchases?${urlParams.toString()}`, {
     method: 'GET',
@@ -39,7 +43,10 @@ export async function fetchPurchases(params: PageParams): Promise<Purchase[]> {
     credentials: 'include',
   });
   if (!res.ok) throw new Error('Network error');
-  return res.json();
+  const purchase: Purchase[] = await res.json();
+  const totalStr = res.headers.get('X-Total-Count') || '0';
+  const total = parseInt(totalStr, 10);
+  return { purchase, total };
 }
 
 export async function updatePurchaseStatus({
@@ -56,4 +63,26 @@ export async function updatePurchaseStatus({
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error('Network error');
+}
+
+export async function fetchMostPurchases(
+  params: PageParams,
+): Promise<{ purchases: MostPurchases[]; total: number }> {
+  const urlParams = new URLSearchParams();
+  urlParams.append('page', String(params.page));
+  urlParams.append('perPage', String(params.perPage));
+
+  const res = await fetch(
+    `/api/purchases/leaderboard?${urlParams.toString()}`,
+    {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    },
+  );
+  if (!res.ok) throw new Error('Error fetching leaderboard');
+  const purchase: MostPurchases[] = await res.json();
+  const totalStr = res.headers.get('X-Total-Count') || '0';
+  const total = parseInt(totalStr, 10);
+  return { purchases: purchase, total };
 }

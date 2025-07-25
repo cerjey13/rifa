@@ -5,7 +5,7 @@ interface LoginRegisterModalProps {
   isRegister: boolean;
   onClose: () => void;
   onSwitch: () => void;
-  onLogin: (user: User) => void;
+  onLogin: () => void;
 }
 
 export const LoginRegisterModal = ({
