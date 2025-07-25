@@ -1,79 +1,69 @@
-import { useState, useEffect, type ReactNode } from 'react';
-import { AuthContext } from './useAuth';
-import { login as apiLogin } from '@src/api/auth';
-import { getErrorMessage } from '@src/utils/errors';
+import type { ReactNode } from 'react';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+} from '@tanstack/react-query';
+import { login, fetchCurrentUser, logout } from '@src/api/auth';
+import { AuthContext } from '@src/context/useAuth';
+
 export interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
-  loading: boolean;
   authenticated: boolean;
-  login: (email: string, password: string) => Promise<User>;
-  logout: () => void;
+  loading: boolean;
+  login: UseMutationResult<User, Error, { email: string; password: string }>;
+  logout: UseMutationResult<void, Error, void>;
+  refetchUser: () => void;
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetch('/api/me', { credentials: 'include' })
-      .then(async (res) => {
-        if (res.status === 200) {
-          const data = await res.json();
-          setUser(data);
-          setAuthenticated(true);
-        } else {
-          setUser(null);
-          setAuthenticated(false);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setUser(null);
-        setAuthenticated(false);
-        setLoading(false);
-      });
-  }, []);
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+    refetch: refetchUser,
+  } = useQuery<User, Error>({
+    queryKey: ['me'],
+    queryFn: fetchCurrentUser,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
-  const login = async (email: string, password: string): Promise<User> => {
-    setLoading(true);
-    try {
-      await apiLogin({ email, password });
-      const userRes = await fetch('/api/me', { credentials: 'include' });
-      if (userRes.status === 200) {
-        const userData = await userRes.json();
-        setUser(userData);
-        setAuthenticated(true);
-        setLoading(false);
-        return userData;
-      } else {
-        setUser(null);
-        setAuthenticated(false);
-        setLoading(false);
-        throw new Error('failed to retrieve user');
-      }
-    } catch (error) {
-      setUser(null);
-      setAuthenticated(false);
-      setLoading(false);
-      getErrorMessage(error, 'invalid login');
-      throw error;
-    }
-  };
+  const loginMutation = useMutation<
+    User,
+    Error,
+    { email: string; password: string }
+  >({
+    mutationFn: login,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
 
-  const logout = () => {
-    fetch('/api/logout', { method: 'POST', credentials: 'include' }).finally(
-      () => {
-        setUser(null);
-        setAuthenticated(false);
-      },
-    );
-  };
+  const logoutMutation = useMutation<void, Error, void>({
+    mutationFn: logout,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+  });
+
+  const authenticated = !!user && !userError;
+  const loading =
+    userLoading || loginMutation.isPending || logoutMutation.isPending;
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, authenticated, login, logout }}
+      value={{
+        user: user || null,
+        authenticated,
+        loading,
+        login: loginMutation,
+        logout: logoutMutation,
+        refetchUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

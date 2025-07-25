@@ -41,7 +41,9 @@ export const Dashboard: React.FC = () => {
   const { mutate: changeStatus, isPending } = useMutation({
     mutationFn: updatePurchaseStatus,
     onSuccess: (_, variables) => {
-      toast.success(`Estado actualizado a "${statusEs[variables.status]}"`);
+      const label = statusEs[variables.status];
+      const capitalized = label.charAt(0).toUpperCase() + label.slice(1);
+      toast.success(`Estado actualizado a "${capitalized}"`);
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
     },
     onError: (error: Error) => {
@@ -149,21 +151,46 @@ export const Dashboard: React.FC = () => {
               </div>
               <div>
                 <span className='font-semibold'>Estado:</span>{' '}
-                <select
-                  value={editingStatus[p.id] ?? p.status}
-                  onChange={(e) =>
-                    setEditingStatus((prev) => ({
-                      ...prev,
-                      [p.id]: e.target.value as PurchaseStatus,
-                    }))
-                  }
-                  disabled={isPending}
-                  className='bg-gray-800 text-white rounded px-2 py-1'
-                >
-                  <option value='pending'>Pendiente</option>
-                  <option value='verified'>Verificado</option>
-                  <option value='cancelled'>Cancelado</option>
-                </select>
+                <div className='flex flex-col gap-1 mt-1 w-fit'>
+                  <select
+                    value={editingStatus[p.id] ?? p.status}
+                    onChange={(e) =>
+                      setEditingStatus((prev) => ({
+                        ...prev,
+                        [p.id]: e.target.value as PurchaseStatus,
+                      }))
+                    }
+                    disabled={isPending}
+                    className='bg-gray-800 text-white rounded px-2 py-1 capitalize'
+                  >
+                    {Object.entries(statusEs).map(([value, label]) => (
+                      <option value={value} key={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  {editingStatus[p.id] && editingStatus[p.id] !== p.status && (
+                    <button
+                      className='px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
+                      onClick={() => {
+                        console.log(editingStatus[p.id]);
+                        changeStatus({
+                          transactionID: p.id,
+                          status: editingStatus[p.id],
+                        });
+                        setEditingStatus((prev) => {
+                          const copy = { ...prev };
+                          delete copy[p.id];
+                          return copy;
+                        });
+                      }}
+                      disabled={isPending}
+                      type='button'
+                    >
+                      Confirmar
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <span className='font-semibold'>Fecha:</span>{' '}

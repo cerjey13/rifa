@@ -1,10 +1,11 @@
+import { fetchCurrentUser } from '@src/api/auth';
 import { useAuth } from '@src/context/useAuth';
 import { getErrorMessage } from '@src/utils/errors';
 import { useState } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 interface LoginFormProps {
-  onLogin: (user: User) => void;
+  onLogin: () => void;
   onSwitch: () => void;
 }
 
@@ -71,9 +72,14 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
     setLoading(true);
 
     try {
-      const user = await login(formData.email, formData.password);
+      await login.mutateAsync({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const user = await fetchCurrentUser();
       if (user.email !== undefined) {
-        onLogin(user);
+        onLogin();
       } else {
         setErrors((prev) => ({ ...prev, message: 'Error al iniciar sesión' }));
       }
