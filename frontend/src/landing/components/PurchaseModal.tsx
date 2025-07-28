@@ -16,14 +16,17 @@ export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
   const [montoBs, setMontoBs] = useState<string>('75');
   const [montoUSD, setMontoUSD] = useState<string>('0.5');
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
   const handleQuantityNext = (
     qty: number,
     montoBs: string,
     montoUSD: string,
+    numbers: string[],
   ) => {
     setQuantity(qty);
     setMontoBs(montoBs);
     setMontoUSD(montoUSD);
+    setSelectedNumbers(numbers);
     setStep('paymentMethod');
   };
 
@@ -65,6 +68,7 @@ export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
             montoBs={montoBs}
             montoUSD={montoUSD}
             paymentMethod={paymentMethod ?? ''}
+            selectedNumbers={selectedNumbers}
             onBack={handleBuyFormBack}
             onClose={handleClose}
           />

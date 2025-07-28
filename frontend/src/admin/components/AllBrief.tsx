@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PurchaseFilters } from './PurchaseFilters';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchPurchases, updatePurchaseStatus } from '@src/api/purchase';
 import { toast } from 'sonner';
 import { formatDateES } from '@src/utils/dates';
 import { safeArray } from '@src/utils/arrays';
+import { useNavigate } from 'react-router-dom';
+import { AuthError } from '@src/api/auth';
 
 type Filters = { status: string };
 const statusEs: Record<string, string> = {
@@ -24,6 +26,7 @@ export const ResumenCompras: React.FC = () => {
     Record<string, PurchaseStatus>
   >({});
   const perPage = 2;
+  const navigate = useNavigate();
 
   const {
     data: purchasesRaw,
@@ -51,6 +54,12 @@ export const ResumenCompras: React.FC = () => {
       toast.error('No se pudo actualizar el estado. Intenta nuevamente.');
     },
   });
+
+  useEffect(() => {
+    if (error && error instanceof AuthError) {
+      navigate('/', { replace: true });
+    }
+  }, [error, navigate]);
 
   const purchases = safeArray<Purchase>(purchasesRaw?.purchase);
   const pageCount = Math.max(

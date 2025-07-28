@@ -1,3 +1,5 @@
+import { AuthError } from './auth';
+
 export async function submitPurchase(purchase: {
   quantity: number;
   montoBs: string;
@@ -14,7 +16,7 @@ export async function submitPurchase(purchase: {
   formData.append('transactionDigits', purchase.transactionDigits);
   formData.append('paymentScreenshot', purchase.paymentScreenshot);
 
-  const res = await fetch('/api/purchase', {
+  const res = await fetch('/api/purchases', {
     method: 'POST',
     body: formData,
     credentials: 'include',
@@ -42,7 +44,11 @@ export async function fetchPurchases(
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   });
-  if (!res.ok) throw new Error('Network error');
+
+  if (res.status === 401) {
+    throw new AuthError('Unauthorized');
+  }
+  if (!res.ok) throw new Error('Failed to fetch purchases');
   const purchase: Purchase[] = await res.json();
   const totalStr = res.headers.get('X-Total-Count') || '0';
   const total = parseInt(totalStr, 10);
