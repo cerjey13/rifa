@@ -25,7 +25,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		huma.Operation{
 			OperationID:   "purchase",
 			Method:        http.MethodPost,
-			Path:          "/api/purchase",
+			Path:          "/api/purchases",
 			Summary:       "Submit a purchase",
 			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 			DefaultStatus: http.StatusCreated,
@@ -45,7 +45,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			if !ok {
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
-			// Save in DB
+
 			purchase := &form.CreatePurchaseRequest{
 				UserID:   claims["id"].(string),
 				Quantity: formData.Quantity,
@@ -110,6 +110,30 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		output := dto.MostPurchasesOutput{}
 		output.Body = leaderboard
 		return &output, nil
+	})
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "list user purchases",
+		Method:        http.MethodGet,
+		Path:          "/api/purchases/tickets",
+		Summary:       "Get purchases for a user",
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+		DefaultStatus: http.StatusOK,
+	}, func(
+		ctx context.Context,
+		_ *struct{},
+	) (*struct {
+		Body form.MostPurchases
+	}, error) {
+		claims, ok := ctx.Value("claims").(jwt.MapClaims)
+		if !ok {
+			return nil, huma.Error401Unauthorized("No session claims")
+		}
+		//TODO: implement the retrieval of tickets
+		output := &struct{ Body form.MostPurchases }{}
+		output.Body.Quantity = 100
+		output.Body.User.ID = claims["id"].(string)
+		return output, nil
 	})
 
 	huma.Register(

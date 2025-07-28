@@ -5,6 +5,8 @@ type Register = {
   password: string;
 };
 
+export class AuthError extends Error {}
+
 export async function register(registerData: Register) {
   const res = await fetch('/api/register', {
     method: 'POST',
@@ -32,7 +34,7 @@ export async function login(data: { email: string; password: string }) {
 
 export async function fetchCurrentUser(): Promise<User> {
   const res = await fetch('/api/me', { credentials: 'include' });
-  if (!res.ok) throw new Error('Not authenticated');
+  if (!res.ok) throw new AuthError('Unauthorized');
   return res.json();
 }
 

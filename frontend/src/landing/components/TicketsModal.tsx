@@ -8,12 +8,12 @@ interface TicketsModalProps {
 
 export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
   const {
-    data: count,
+    data: quantity,
     isLoading,
     error,
   } = useQuery<number, Error>({
     queryKey: ['ticket-count', userEmail],
-    queryFn: () => fetchUserTicketCount(userEmail),
+    queryFn: () => fetchUserTicketCount(),
     enabled: !!userEmail,
   });
 
@@ -60,7 +60,7 @@ export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
         ) : (
           <p className='text-center text-lg'>
             Has comprado{' '}
-            <strong className='text-orange-400 text-2xl'>{count}</strong>{' '}
+            <strong className='text-orange-400 text-2xl'>{quantity}</strong>{' '}
             número(s).
           </p>
         )}

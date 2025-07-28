@@ -84,9 +84,10 @@ export const LoginForm = ({ onLogin, onSwitch }: LoginFormProps) => {
         setErrors((prev) => ({ ...prev, message: 'Error al iniciar sesión' }));
       }
     } catch (error) {
+      console.error(getErrorMessage(error, 'Error al iniciar sesión'));
       setErrors((prev) => ({
         ...prev,
-        message: getErrorMessage(error, 'Error al iniciar sesión'),
+        message: 'Error al iniciar sesión',
       }));
     } finally {
       setLoading(false);

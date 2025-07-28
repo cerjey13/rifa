@@ -8,6 +8,7 @@ interface BuyFormProps {
   montoBs: string;
   montoUSD: string;
   paymentMethod: string;
+  selectedNumbers: string[];
   onBack: () => void;
   onClose: () => void;
 }
@@ -22,6 +23,7 @@ export const BuyForm = ({
   montoBs,
   montoUSD,
   paymentMethod,
+  selectedNumbers,
   onBack,
   onClose,
 }: BuyFormProps) => {
@@ -180,6 +182,12 @@ export const BuyForm = ({
             {paymentMethod === paymentMethods.zelle && (
               <p>
                 <span className='font-semibold'>Monto ($):</span> {montoUSD}
+              </p>
+            )}
+            {selectedNumbers.filter(Boolean).length > 0 && (
+              <p>
+                <span className='font-semibold'>Números seleccionados:</span>{' '}
+                {selectedNumbers.filter(Boolean).join(', ')}
               </p>
             )}
           </div>
