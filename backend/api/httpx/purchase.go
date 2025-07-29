@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
@@ -57,9 +58,11 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 				),
 				PaymentMethod:     formData.PaymentMethod,
 				TransactionDigits: formData.TransactionDigits,
+				SelectedNumbers:   strings.Split(formData.SelectedNumbers, ","),
 				PaymentScreenshot: screenshot,
 			}
 			if err := srv.Create(ctx, purchase); err != nil {
+				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Failed to save purchase",
 				)
@@ -84,7 +87,10 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	) (*dto.PurchasesOutput, error) {
 		purchases, total, err := srv.GetAll(ctx, *input)
 		if err != nil {
-			return nil, huma.Error500InternalServerError("Failed to get purchases")
+			log.Println(err)
+			return nil, huma.Error500InternalServerError(
+				"Failed to get purchases",
+			)
 		}
 
 		output := dto.PurchasesOutput{Body: purchases, Total: total}
@@ -104,7 +110,10 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	) (*dto.MostPurchasesOutput, error) {
 		leaderboard, err := srv.GetLeaderboard(ctx, *input)
 		if err != nil {
-			return nil, huma.Error500InternalServerError("Failed to get purchases")
+			log.Println(err)
+			return nil, huma.Error500InternalServerError(
+				"Failed to get purchases",
+			)
 		}
 
 		output := dto.MostPurchasesOutput{}

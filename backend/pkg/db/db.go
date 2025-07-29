@@ -17,6 +17,15 @@ type DB interface {
 	Query(ctx context.Context, query string, args ...any) (Rows, error)
 	QueryRow(ctx context.Context, query string, args ...any) Row
 	ExecContext(ctx context.Context, query string, args ...any) error
+	BeginTx(ctx context.Context) (Tx, error)
+}
+
+type Tx interface {
+	Query(ctx context.Context, query string, args ...any) (Rows, error)
+	QueryRow(ctx context.Context, query string, args ...any) Row
+	ExecContext(ctx context.Context, query string, args ...any) error
+	Commit(ctx context.Context) error
+	Rollback(ctx context.Context) error
 }
 
 type Row interface {

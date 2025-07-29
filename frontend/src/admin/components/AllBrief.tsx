@@ -25,7 +25,7 @@ export const ResumenCompras: React.FC = () => {
   const [editingStatus, setEditingStatus] = useState<
     Record<string, PurchaseStatus>
   >({});
-  const perPage = 2;
+  const perPage = 10;
   const navigate = useNavigate();
 
   const {

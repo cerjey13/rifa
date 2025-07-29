@@ -61,6 +61,7 @@ export const BuyForm = ({
         montoUSD,
         paymentMethod,
         transactionDigits,
+        selectedNumbers,
         paymentScreenshot,
       });
 
@@ -74,7 +75,7 @@ export const BuyForm = ({
 
   return (
     <>
-      <div
+      {/* <div
         className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 transition-opacity duration-500 ${
           success
             ? 'opacity-100 pointer-events-auto'
@@ -96,9 +97,9 @@ export const BuyForm = ({
             Cerrar
           </button>
         </div>
-      </div>
+      </div> */}
 
-      {!success && (
+      {
         <form
           onSubmit={handleSubmit}
           className='flex flex-col gap-6 text-white'
@@ -271,7 +272,7 @@ export const BuyForm = ({
             </button>
           </div>
         </form>
-      )}
+      }
     </>
   );
 };
