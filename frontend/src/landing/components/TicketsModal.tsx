@@ -1,4 +1,4 @@
-import { fetchUserTicketCount } from '@src/api/tickets';
+import { fetchUserTickets } from '@src/api/tickets';
 import { useQuery } from '@tanstack/react-query';
 
 interface TicketsModalProps {
@@ -8,12 +8,12 @@ interface TicketsModalProps {
 
 export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
   const {
-    data: quantity,
+    data: tickets,
     isLoading,
     error,
-  } = useQuery<number, Error>({
+  } = useQuery<string[], Error>({
     queryKey: ['ticket-count', userEmail],
-    queryFn: () => fetchUserTicketCount(),
+    queryFn: () => fetchUserTickets(),
     enabled: !!userEmail,
   });
 
@@ -57,12 +57,34 @@ export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
           <p className='text-center text-red-500 text-base sm:text-lg'>
             Error al cargar tickets
           </p>
-        ) : (
-          <p className='text-center text-lg'>
-            Has comprado{' '}
-            <strong className='text-orange-400 text-2xl'>{quantity}</strong>{' '}
-            número(s).
+        ) : tickets && tickets.length === 0 ? (
+          <p className='text-center text-gray-400 text-base sm:text-lg'>
+            No has comprado ningún número.
           </p>
+        ) : (
+          tickets && (
+            <div className='space-y-4'>
+              <p className='text-center text-base'>
+                Has comprado{' '}
+                <strong className='text-yellow-400 text-lg'>
+                  {tickets.length}
+                </strong>{' '}
+                número(s):
+              </p>
+              <div className='bg-gray-700 p-2 rounded-lg shadow-inner max-h-[200px] overflow-y-auto'>
+                <div className='flex flex-wrap gap-1.5 p-2'>
+                  {tickets.map((ticket) => (
+                    <span
+                      key={ticket}
+                      className='bg-yellow-400 text-black font-mono font-semibold w-13 text-center py-2 rounded-full text-sm shadow'
+                    >
+                      {ticket}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>

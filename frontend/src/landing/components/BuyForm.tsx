@@ -161,8 +161,12 @@ export const BuyForm = ({
                   <CopyableText text='zelle@example.com' />
                 </p>
                 <p>
+                  <span className='font-semibold'>ACH:</span>{' '}
+                  <CopyableText text='3802389306' />
+                </p>
+                <p>
                   <span className='font-semibold'>Nombre:</span>{' '}
-                  <CopyableText text='Juan Perez' />
+                  <CopyableText text='Vicente Méndez' />
                 </p>
               </>
             )}

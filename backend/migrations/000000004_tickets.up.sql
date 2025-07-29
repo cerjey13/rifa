@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS tickets (
     purchase_id  UUID REFERENCES purchases(id) ON DELETE SET NULL,
     reserved_at  TIMESTAMP,
     status       VARCHAR(20) NOT NULL DEFAULT 'available' 
-        CHECK (status IN ('available', 'sold')),
+        CHECK (status IN ('available', 'sold', 'held')),
     UNIQUE(lottery_id, number)
 );
 
