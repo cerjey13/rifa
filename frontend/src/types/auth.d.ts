@@ -16,6 +16,7 @@ interface Purchase {
   montoUsd: number;
   paymentMethod: string;
   transactionDigits: string;
+  selectedNumbers: string[];
   paymentScreenshot: string;
   status: string;
   date: string;

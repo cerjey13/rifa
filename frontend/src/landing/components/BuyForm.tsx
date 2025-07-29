@@ -61,6 +61,7 @@ export const BuyForm = ({
         montoUSD,
         paymentMethod,
         transactionDigits,
+        selectedNumbers,
         paymentScreenshot,
       });
 

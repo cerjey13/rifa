@@ -11,7 +11,7 @@ import (
 )
 
 type PurchaseRepository interface {
-	Create(ctx context.Context, p *types.Purchase) error
+	Create(ctx context.Context, p *types.Purchase) (string, error)
 	GetAll(
 		ctx context.Context,
 		filters dto.GetAllPurchases,
@@ -29,13 +29,18 @@ func NewPurchaseRepository(db database.DB) PurchaseRepository {
 	return &purchaseRepo{db: db}
 }
 
-func (r *purchaseRepo) Create(ctx context.Context, p *types.Purchase) error {
-	err := r.db.ExecContext(
+func (r *purchaseRepo) Create(
+	ctx context.Context,
+	p *types.Purchase,
+) (string, error) {
+	var id string
+	err := r.db.QueryRow(
 		ctx,
 		`INSERT INTO purchases
 		(user_id, quantity, monto_bs, monto_usd, payment_method, 
 		transaction_digits, payment_screenshot, status, created_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING id`,
 		p.UserID,
 		p.Quantity,
 		p.MontoBs,
@@ -45,8 +50,8 @@ func (r *purchaseRepo) Create(ctx context.Context, p *types.Purchase) error {
 		p.PaymentScreenshot,
 		p.Status,
 		p.CreatedAt,
-	)
-	return err
+	).Scan(&id)
+	return id, err
 }
 
 func (r *purchaseRepo) GetAll(
@@ -136,16 +141,6 @@ func (r *purchaseRepo) GetLeaderboard(
 	ctx context.Context,
 	filters dto.GetMostPurchases,
 ) ([]form.MostPurchases, error) {
-	var args []interface{}
-	query := `SELECT u.id, u.name, u.email, u.phone,
-    	SUM(p.quantity) as quantity
-		FROM purchases p JOIN users u ON p.user_id = u.id
-		WHERE p.status = 'verified'
-		GROUP BY u.id, u.name, u.email, u.phone
-		ORDER BY quantity DESC `
-
-	argIdx := 1
-	// Pagination logic
 	perPage := filters.ItemCount
 	if perPage <= 0 {
 		perPage = 10
@@ -155,8 +150,21 @@ func (r *purchaseRepo) GetLeaderboard(
 		page = 1
 	}
 	offset := (page - 1) * perPage
-	query += fmt.Sprintf("LIMIT $%d OFFSET $%d", argIdx, argIdx+1)
-	args = append(args, perPage, offset)
+
+	query := `
+		SELECT id, name, email, phone, quantity
+		FROM (
+			SELECT u.id, u.name, u.email, u.phone,
+				SUM(p.quantity) as quantity
+			FROM purchases p
+			JOIN users u ON p.user_id = u.id
+			WHERE p.status = 'verified'
+			GROUP BY u.id, u.name, u.email, u.phone
+		) AS leaderboard
+		ORDER BY quantity DESC
+		LIMIT $1 OFFSET $2
+	`
+	args := []interface{}{perPage, offset}
 
 	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
@@ -177,7 +185,6 @@ func (r *purchaseRepo) GetLeaderboard(
 		if err != nil {
 			return nil, err
 		}
-
 		leaderboard = append(leaderboard, entry)
 	}
 

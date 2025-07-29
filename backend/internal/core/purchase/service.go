@@ -3,6 +3,7 @@ package purchase
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"rifa/backend/api/httpx/dto"
@@ -10,6 +11,7 @@ import (
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/utils"
 )
 
 type Service interface {
@@ -26,17 +28,26 @@ type Service interface {
 }
 
 type service struct {
-	repo repository.PurchaseRepository
+	repo       repository.PurchaseRepository
+	ticketRepo repository.TicketRepository
 }
 
 func NewService(db database.DB) Service {
-	return &service{repo: repository.NewPurchaseRepository(db)}
+	return &service{
+		repo:       repository.NewPurchaseRepository(db),
+		ticketRepo: repository.NewTicketRepository(db),
+	}
 }
 
 func (s *service) Create(
 	ctx context.Context,
 	req *form.CreatePurchaseRequest,
 ) error {
+	compressScreenshot, err := utils.CompressToJPG(req.PaymentScreenshot)
+	if err != nil {
+		return err
+	}
+
 	purchase := &types.Purchase{
 		UserID:            req.UserID,
 		Quantity:          req.Quantity,
@@ -44,21 +55,42 @@ func (s *service) Create(
 		MontoUSD:          req.MontoUSD,
 		PaymentMethod:     req.PaymentMethod,
 		TransactionDigits: req.TransactionDigits,
-		PaymentScreenshot: req.PaymentScreenshot,
+		PaymentScreenshot: compressScreenshot,
 		Status:            types.StatusPending,
 		CreatedAt:         time.Now(),
 	}
 
-	if err := s.repo.Create(ctx, purchase); err != nil {
+	purchaseID, err := s.repo.Create(ctx, purchase)
+	if err != nil {
 		return err
 	}
 
+	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
+	if err != nil {
+		return err
+	}
+
+	tickets, err := s.ticketRepo.AssignTickets(
+		ctx,
+		lotteryID,
+		req.UserID,
+		purchaseID,
+		req.SelectedNumbers,
+		req.Quantity,
+	)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	// TODO: Send confirmation email to admin with purchase data (use Mailgun or similar).
 	// For now, mock/send to logs:
 	go func(p *types.Purchase) {
 		// Here you would integrate with Mailgun/sendgrid/SMTP etc.
 		// e.g., sendPurchaseEmail(p)
-		fmt.Printf("Mock email: New purchase received! %+v\n", p)
+		fmt.Printf("Mock email: New purchase received! %s\n", p.Status)
+		for _, t := range tickets {
+			fmt.Println(t.Number, t.Status)
+		}
 	}(purchase)
 
 	return nil

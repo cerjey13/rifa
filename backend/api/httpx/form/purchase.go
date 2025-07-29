@@ -11,11 +11,12 @@ type PurchaseInput struct {
 }
 
 type Form struct {
-	Quantity          int           `form:"quantity" validate:"min=1"`
+	Quantity          int           `form:"quantity" validate:"min=2"`
 	MontoBs           string        `form:"montoBs"`
 	MontoUSD          string        `form:"montoUSD"`
 	PaymentMethod     string        `form:"paymentMethod" validate:"required"`
 	TransactionDigits string        `form:"transactionDigits" validate:"len>=6"`
+	SelectedNumbers   string        `form:"selectedNumbers"`
 	PaymentScreenshot huma.FormFile `form:"paymentScreenshot" validate:"required"`
 }
 
@@ -26,6 +27,7 @@ type CreatePurchaseRequest struct {
 	MontoUSD          float64
 	PaymentMethod     string
 	TransactionDigits string
+	SelectedNumbers   []string
 	PaymentScreenshot []byte
 }
 

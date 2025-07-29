@@ -6,6 +6,7 @@ export async function submitPurchase(purchase: {
   montoUSD: string;
   paymentMethod: string;
   transactionDigits: string;
+  selectedNumbers: string[];
   paymentScreenshot: File;
 }): Promise<void> {
   const formData = new FormData();
@@ -14,6 +15,7 @@ export async function submitPurchase(purchase: {
   formData.append('montoUSD', purchase.montoUSD);
   formData.append('paymentMethod', purchase.paymentMethod);
   formData.append('transactionDigits', purchase.transactionDigits);
+  formData.append('selectedNumbers', purchase.selectedNumbers.join(','));
   formData.append('paymentScreenshot', purchase.paymentScreenshot);
 
   const res = await fetch('/api/purchases', {

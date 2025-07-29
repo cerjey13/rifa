@@ -31,10 +31,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
 
   return (
     <>
-      {/* Mobile Overlay */}
       <div
         className={`
-          fixed inset-0 z-[99] bg-black bg-opacity-50 transition-opacity md:hidden
+          fixed inset-0 z-[99] bg-black bg-opacity-50 transition-opacity
           ${
             open
               ? 'opacity-100 pointer-events-auto'
@@ -47,15 +46,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
 
       <aside
         className={`
-          fixed top-0 left-0 z-[100] h-full w-60 bg-gray-900 text-white p-4 flex flex-col gap-4
-          transform transition-transform duration-200
+          fixed top-0 left-0 z-[100] h-full w-60 bg-gray-900 text-white
+          p-4 flex flex-col justify-between transform transition-transform duration-200
           ${open ? 'translate-x-0' : '-translate-x-full'}
-          md:static md:translate-x-0 md:min-h-screen md:w-56 md:p-4
         `}
+        style={{ boxShadow: open ? '0 0 10px rgba(0,0,0,0.3)' : undefined }}
       >
-        {/* Close button (only mobile) */}
         <button
-          className='md:hidden mb-6 flex items-center'
+          className='mb-6 flex items-center'
           onClick={() => setOpen(false)}
           aria-label='Cerrar menú'
           type='button'
@@ -64,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
           <span className='ml-2'>Cerrar menú</span>
         </button>
 
-        <nav className='flex flex-col gap-2 flex-1'>
+        <nav className='flex-1 flex flex-col gap-2 overflow-y-auto'>
           {menuItems.map((item) => (
             <Link
               key={item.label}
@@ -82,14 +80,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
             </Link>
           ))}
         </nav>
-        <button
-          tabIndex={3}
-          onClick={() => logout.mutate()}
-          className='flex items-center gap-3 px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 font-bold transition-colors mt-auto'
-        >
-          <AiOutlineLogout />
-          Cerrar Sesion
-        </button>
+        <div className='absolute bottom-4 left-0 w-full px-4'>
+          <button
+            tabIndex={3}
+            onClick={() => logout.mutate()}
+            className='flex items-center gap-3 w-full px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 font-bold transition-colors'
+          >
+            <AiOutlineLogout />
+            Cerrar Sesion
+          </button>
+        </div>
       </aside>
     </>
   );
