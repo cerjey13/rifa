@@ -1,4 +1,4 @@
-import logo from '@src/assets/react.svg';
+import logo from '@src/assets/logo.jpg';
 import { LoginRegisterModal } from '@src/components/AuthModal/Modal';
 import { useAuth } from '@src/context/useAuth';
 import { useModal } from '@src/context/useModal';

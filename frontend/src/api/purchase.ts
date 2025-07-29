@@ -37,9 +37,9 @@ export async function fetchPurchases(
   const urlParams = new URLSearchParams();
   if (params.status && params.status !== 'all') {
     urlParams.append('status', params.status);
-    urlParams.append('page', String(params.page));
-    urlParams.append('perPage', String(params.perPage));
   }
+  urlParams.append('page', String(params.page));
+  urlParams.append('perPage', String(params.perPage));
 
   const res = await fetch(`/api/purchases?${urlParams.toString()}`, {
     method: 'GET',
