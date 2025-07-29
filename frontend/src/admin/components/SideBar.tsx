@@ -31,7 +31,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
 
   return (
     <>
-      {/* Universal Overlay */}
       <div
         className={`
           fixed inset-0 z-[99] bg-black bg-opacity-50 transition-opacity
@@ -45,7 +44,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
         aria-hidden={!open}
       />
 
-      {/* Sidebar */}
       <aside
         className={`
           fixed top-0 left-0 z-[100] h-full w-60 bg-gray-900 text-white
@@ -54,7 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
         `}
         style={{ boxShadow: open ? '0 0 10px rgba(0,0,0,0.3)' : undefined }}
       >
-        {/* Close button always */}
         <button
           className='mb-6 flex items-center'
           onClick={() => setOpen(false)}
