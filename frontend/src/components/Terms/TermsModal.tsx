@@ -65,7 +65,9 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
     },
     {
       title: 'Lotería',
-      content: 'Usamos los resultados de la Lotería del Táchira.',
+      content:
+        'Usamos los resultados de la Lotería del Táchira (Resultados Super Gana).',
+      link: 'https://tripletachira.com',
     },
     {
       title: 'Comprobantes Incorrectos',
@@ -112,20 +114,22 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
                 {index + 1}. {term.title}
               </h3>
               <p className='mt-1'>{term.content}</p>
+              {term.link ? (
+                <a
+                  href='https://tripletachira.com'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-orange-400 underline'
+                >
+                  Tripletachira.com
+                </a>
+              ) : null}
             </div>
           ))}
 
-          {/* <p className="text-xs text-center text-gray-500 mt-8">
+          <p className='text-xs text-center text-gray-500 mt-8'>
             © 2025 | Todos los derechos reservados •{' '}
-            <a
-              href="https://tripletachira.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-orange-400 underline"
-            >
-              Visita Tripletachira.com
-            </a>
-          </p> */}
+          </p>
         </div>
 
         {/* Footer Button */}
