@@ -10,15 +10,15 @@ export const PrizeInfo = () => (
       <span>🏆 Premios:</span>
     </p>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
-      <span>🥇 1er Premio: New Outlook II 🏍️ 0km 2025</span>
+      <span>🥇 1er Premio: New Outlook II 🏍️ 0 km 2025</span>
     </p>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>🥈 2do Premio: El comprador de más boletos 500$💸</span>
     </p>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>
-        🥉 3er y 🏅4to Premio: Por aproximación (un número o antes o uno después
-        de el número ganador) 50$ 💵
+        🥉 3er y 🏅4to Premio: Por aproximación (un número antes y uno después
+        del número ganador) 50$ 💵
       </span>
     </p>
   </section>
