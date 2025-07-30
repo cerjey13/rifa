@@ -25,7 +25,7 @@ func (r *userRepo) CreateUser(ctx context.Context, user *types.User) error {
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING null
 	`
-	return r.db.QueryRow(
+	return r.db.ExecContext(
 		ctx,
 		query,
 		user.Name,
@@ -33,7 +33,7 @@ func (r *userRepo) CreateUser(ctx context.Context, user *types.User) error {
 		user.Phone,
 		user.Password,
 		user.Role,
-	).Scan(&user.ID)
+	)
 }
 
 func (r *userRepo) GetByEmail(

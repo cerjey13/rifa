@@ -2,7 +2,7 @@ package httpx
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -34,8 +34,9 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 		) (*dto.RegisterOutput, error) {
 			err := svc.Register(ctx, &input.Body)
 			if err != nil {
+				log.Printf("failed to register %v", err)
 				return nil, huma.Error400BadRequest(
-					fmt.Sprintf("Registration failed: %v", err),
+					"Ocurrio un error tratando de registrar al usuario",
 				)
 			}
 
@@ -59,7 +60,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 		) (*dto.LoginOutput, error) {
 			user, err := svc.Login(ctx, &input.Body)
 			if err != nil {
-				return nil, huma.Error400BadRequest("Invalid credentials")
+				return nil, huma.Error400BadRequest("Credenciales invalidas")
 			}
 
 			return &dto.LoginOutput{

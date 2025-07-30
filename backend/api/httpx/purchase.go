@@ -79,7 +79,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		Method:        http.MethodGet,
 		Path:          "/api/purchases",
 		Summary:       "List all purchases (admin only)",
-		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireAdminSession(api)},
 		DefaultStatus: http.StatusOK,
 	}, func(
 		ctx context.Context,
@@ -102,7 +102,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		Method:        http.MethodGet,
 		Path:          "/api/purchases/leaderboard",
 		Summary:       "List purchases by user with the most buyed",
-		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireAdminSession(api)},
 		DefaultStatus: http.StatusOK,
 	}, func(
 		ctx context.Context,
@@ -126,7 +126,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 		Method:        http.MethodGet,
 		Path:          "/api/purchases/tickets",
 		Summary:       "Get purchases for a user",
-		Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+		Middlewares:   huma.Middlewares{mymiddlewares.RequireAdminSession(api)},
 		DefaultStatus: http.StatusOK,
 	}, func(
 		ctx context.Context,

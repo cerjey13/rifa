@@ -18,7 +18,7 @@ export const PrizeInfo = () => (
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>
         🥉 3er y 🏅4to Premio: Por aproximación (un número antes y uno después
-        del número ganador) 50$ 💵
+        del número ganador) 100$ 💵
       </span>
     </p>
   </section>

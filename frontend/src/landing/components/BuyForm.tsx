@@ -157,11 +157,7 @@ export const BuyForm = ({
             {paymentMethod === paymentMethods.zelle && (
               <>
                 <p>
-                  <span className='font-semibold'>Cuenta:</span>{' '}
-                  <CopyableText text='zelle@example.com' />
-                </p>
-                <p>
-                  <span className='font-semibold'>ACH:</span>{' '}
+                  <span className='font-semibold'>Teléfono:</span>{' '}
                   <CopyableText text='3802389306' />
                 </p>
                 <p>
