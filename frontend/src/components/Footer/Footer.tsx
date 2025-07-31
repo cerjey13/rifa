@@ -1,8 +1,7 @@
-import logo from '@src/assets/logo.jpg';
 import { useState } from 'react';
 import { FaInstagram, FaTiktok } from 'react-icons/fa';
-import { TermsModal } from '../Terms/TermsModal';
-import { PrivacyModal } from '../Privacy/PrivacyModal';
+import { TermsModal } from '@src/components/Terms/TermsModal';
+import { PrivacyModal } from '@src/components/Privacy/PrivacyModal';
 
 export const Footer = () => {
   const [termsOpen, setTermsOpen] = useState(false);
@@ -12,16 +11,14 @@ export const Footer = () => {
     <>
       <footer className='bg-[#121726] text-white text-sm px-5 pb-5 mt-5'>
         <div className='max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8'>
-          {/* Brand/Description */}
           <div>
-            <img src={logo} alt='Logo' className='h-10 mb-4' />
+            <img src='/logo.jpg' alt='Logo' className='h-10 mb-4' />
             <p className='text-gray-400'>
               Tu plataforma de confianza para rifas emocionantes. Premios
               increíbles, transparencia total y la mejor experiencia de usuario.
             </p>
           </div>
 
-          {/* Secciones */}
           <div>
             <h3 className='font-semibold text-white mb-2'>Secciones</h3>
             <ul className='space-y-1 text-gray-300'>
@@ -44,7 +41,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Contacto */}
           <div>
             <h3 className='font-semibold text-white mb-2'>Contacto</h3>
             <a
@@ -58,7 +54,6 @@ export const Footer = () => {
             <p className='text-gray-300'>Caracas, Venezuela</p>
           </div>
 
-          {/* Redes Sociales */}
           <div>
             <h3 className='font-semibold text-white mb-2'>Síguenos</h3>
             <div className='flex space-x-4 text-xl'>

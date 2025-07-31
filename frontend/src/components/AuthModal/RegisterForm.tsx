@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 interface RegisterFormProps {
-  onRegister: () => void;
+  onSwitch: () => void;
 }
 
 const validateEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-export const RegisterForm = ({ onRegister }: RegisterFormProps) => {
+export const RegisterForm = ({ onSwitch }: RegisterFormProps) => {
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -91,7 +91,7 @@ export const RegisterForm = ({ onRegister }: RegisterFormProps) => {
       });
       setSuccessMsg('¡Registro exitoso! Ya puedes iniciar sesión.');
       setTimeout(() => {
-        onRegister();
+        onSwitch();
       }, 1000);
     } catch (error) {
       setErrorMsg(getErrorMessage(error, 'Error al registrarse'));
@@ -242,6 +242,17 @@ export const RegisterForm = ({ onRegister }: RegisterFormProps) => {
       >
         Registrarse
       </button>
+
+      <p className='text-center text-sm text-brandLightGray'>
+        ¿Ya tienes cuenta?{' '}
+        <button
+          type='button'
+          onClick={onSwitch}
+          className='text-[#FF7F00] hover:underline'
+        >
+          Inicia Sesión
+        </button>
+      </p>
     </form>
   );
 };

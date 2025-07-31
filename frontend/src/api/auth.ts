@@ -33,7 +33,7 @@ export async function login(data: { email: string; password: string }) {
 }
 
 export async function fetchCurrentUser(): Promise<User> {
-  const res = await fetch('/api/me', { credentials: 'include' });
+  const res = await fetch('/api/me', { method: 'GET', credentials: 'include' });
   if (!res.ok) throw new AuthError('Unauthorized');
   return res.json();
 }
