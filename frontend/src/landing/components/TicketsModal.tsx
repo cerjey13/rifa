@@ -71,7 +71,7 @@ export const TicketsModal = ({ userEmail, onClose }: TicketsModalProps) => {
                 </strong>{' '}
                 número(s):
               </p>
-              <div className='bg-gray-700 p-2 rounded-lg shadow-inner max-h-[200px] overflow-y-auto'>
+              <div className='bg-gray-700 p-3 rounded-lg shadow-inner  overflow-y-auto'>
                 <div className='flex flex-wrap gap-1.5 p-2'>
                   {tickets.map((ticket) => (
                     <span

@@ -1,8 +1,22 @@
+import { fetchTicketsPercentage } from '@src/api/tickets';
 import { ProgressBar } from '@src/landing/components/ProgressBar';
+import { useQuery } from '@tanstack/react-query';
 
 export const CountdownSection = () => {
-  //TODO: change the percentage from the backend
-  const salesPercentage = 77.95;
+  const {
+    data: vendidos,
+    isLoading,
+    isError,
+  } = useQuery<number, Error>({
+    queryKey: ['ticket-availability'],
+    queryFn: () => fetchTicketsPercentage(),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  if (isLoading)
+    return <p className='text-gray-400'>Cargando disponibilidad...</p>;
+  if (isError || !vendidos)
+    return <p className='text-red-500'>Error al cargar disponibilidad</p>;
 
   return (
     <div className='p-4 space-y-4 max-w-lg mx-auto'>
@@ -13,10 +27,8 @@ export const CountdownSection = () => {
         </span>
       </div>
 
-      <ProgressBar percentage={salesPercentage} />
-      <p className='text-right text-brandLightGray'>
-        {salesPercentage}% vendido
-      </p>
+      <ProgressBar percentage={vendidos} />
+      <p className='text-right text-brandLightGray'>{vendidos}% Vendido</p>
     </div>
   );
 };
