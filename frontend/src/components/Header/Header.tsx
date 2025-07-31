@@ -1,4 +1,3 @@
-import logo from '@src/assets/logo.jpg';
 import { LoginRegisterModal } from '@src/components/AuthModal/Modal';
 import { useAuth } from '@src/context/useAuth';
 import { useModal } from '@src/context/useModal';
@@ -15,7 +14,7 @@ export const Header = () => {
     <>
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
         <a href='/'>
-          <img src={logo} alt='Logo' className='h-10' />
+          <img src='/logo.jpg' alt='Logo' className='h-10' />
         </a>
         <nav className='flex items-center space-x-6 font-semibold text-sm'>
           {!user && (
@@ -39,15 +38,22 @@ export const Header = () => {
           {user && (
             <>
               {user.role === 'admin' && (
-                <a href='/dashboard' className='hover:text-brandOrange'>
+                <a href='/dashboard' className='hover:text-orange-400'>
                   Dashboard
                 </a>
               )}
               <button
                 onClick={() => logout.mutate()}
-                className='hover:text-brandOrange'
+                className='hover:text-orange-400'
               >
-                Cerrar sesión
+                <a
+                  href='/'
+                  target='_self'
+                  rel='noreferrer'
+                  className='hover:text-[#F97316] transition-colors'
+                >
+                  Cerrar Sesión
+                </a>
               </button>
             </>
           )}
