@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { fetchAvailableTickets } from '@src/api/tickets';
 
-type TicketApiError = {
-  message: string;
-  taken?: string[];
-};
-
-//TODO: change to a real backend integration
-async function mockPurchaseTickets(numbers: string[]): Promise<void> {
-  await new Promise((res) => setTimeout(res, 800));
-  const taken = numbers.filter(
-    (number) => number === '100' || number === '150',
-  );
-  if (taken.length) {
-    throw { message: 'Algunos números no están disponibles', taken };
-  }
-}
 const MIN_TICKETS = 2 as const;
 const MAX_TICKETS = 500 as const;
 const TICKET_MIN_VALUE = 0 as const;
@@ -135,23 +121,26 @@ export const QuantitySelector = ({
     const numbersToCheck = numbers.filter((num) => num !== '');
 
     try {
-      if (numbersToCheck.length > 0) {
-        await mockPurchaseTickets(numbersToCheck);
+      const unavailableTickets =
+        numbersToCheck.length > 0
+          ? await fetchAvailableTickets(numbersToCheck)
+          : [];
+
+      if (unavailableTickets.length > 0) {
+        setBackendErrors(unavailableTickets);
+        return;
       }
+
       onNext(quantity, montoBs, montoUSD, numbers);
     } catch (error) {
-      if (typeof error === 'object' && error && 'message' in error) {
-        const err = error as TicketApiError;
-        if (err.taken && Array.isArray(err.taken)) {
-          setBackendErrors(err.taken);
-        }
-        setGeneralError(err.message || 'Ocurrió un error. Intenta de nuevo.');
-      } else {
-        setGeneralError('Ocurrió un error. Intenta de nuevo.');
-      }
+      setGeneralError(
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error. Intenta de nuevo.',
+      );
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   return (

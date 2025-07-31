@@ -184,7 +184,6 @@ export const ResumenCompras: React.FC = () => {
                     <button
                       className='px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
                       onClick={() => {
-                        console.log(editingStatus[p.id]);
                         changeStatus({
                           transactionID: p.id,
                           status: editingStatus[p.id],
@@ -301,7 +300,6 @@ export const ResumenCompras: React.FC = () => {
                     <button
                       className='mt-1 px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
                       onClick={() => {
-                        console.log(editingStatus[p.id]);
                         changeStatus({
                           transactionID: p.id,
                           status: editingStatus[p.id],

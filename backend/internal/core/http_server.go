@@ -86,6 +86,7 @@ func NewHttpServer(
 	api := humachi.New(router, apiConfig)
 	httpx.RegisterAuthRoutes(api, db)
 	httpx.RegisterPurchaseRoutes(api, db)
+	httpx.RegisterTicketsRoutes(api, db)
 
 	server := &HttpServer{
 		router,

@@ -15,7 +15,12 @@ export async function submitPurchase(purchase: {
   formData.append('montoUSD', purchase.montoUSD);
   formData.append('paymentMethod', purchase.paymentMethod);
   formData.append('transactionDigits', purchase.transactionDigits);
-  formData.append('selectedNumbers', purchase.selectedNumbers.join(','));
+  formData.append(
+    'selectedNumbers',
+    purchase.selectedNumbers.filter(Boolean).length > 0
+      ? purchase.selectedNumbers.filter(Boolean).join(',')
+      : '',
+  );
   formData.append('paymentScreenshot', purchase.paymentScreenshot);
 
   const res = await fetch('/api/purchases', {

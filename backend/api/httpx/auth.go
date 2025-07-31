@@ -17,7 +17,7 @@ import (
 )
 
 func RegisterAuthRoutes(api huma.API, db database.DB) {
-	svc := auth.NewAuthService(db)
+	srv := auth.NewAuthService(db)
 
 	huma.Register(
 		api,
@@ -32,7 +32,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 			ctx context.Context,
 			input *dto.RegisterInput,
 		) (*dto.RegisterOutput, error) {
-			err := svc.Register(ctx, &input.Body)
+			err := srv.Register(ctx, &input.Body)
 			if err != nil {
 				log.Printf("failed to register %v", err)
 				return nil, huma.Error400BadRequest(
@@ -58,7 +58,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 			ctx context.Context,
 			input *dto.LoginInput,
 		) (*dto.LoginOutput, error) {
-			user, err := svc.Login(ctx, &input.Body)
+			user, err := srv.Login(ctx, &input.Body)
 			if err != nil {
 				return nil, huma.Error400BadRequest("Credenciales invalidas")
 			}
