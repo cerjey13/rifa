@@ -15,8 +15,7 @@ export const CountdownSection = () => {
 
   if (isLoading)
     return <p className='text-gray-400'>Cargando disponibilidad...</p>;
-  // if (isError || !vendidos)
-  //  {vendidos = 0}
+  if (isError) console.error('failed');
 
   return (
     <div className='p-4 space-y-4 max-w-lg mx-auto'>
