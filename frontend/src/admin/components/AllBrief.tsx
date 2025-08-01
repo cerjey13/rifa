@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PurchaseFilters } from './PurchaseFilters';
+import { PurchaseFilters } from '@src/admin/components/PurchaseFilters';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchPurchases, updatePurchaseStatus } from '@src/api/purchase';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ export const ResumenCompras: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<Omit<User, 'role'> | null>(
     null,
   );
+  const [selectedTickets, setSelectedTickets] = useState<string[] | null>(null);
   const [filters, setFilters] = useState<Filters>({ status: '' });
   const [page, setPage] = useState<number>(1);
   const [editingStatus, setEditingStatus] = useState<
@@ -39,6 +40,7 @@ export const ResumenCompras: React.FC = () => {
     placeholderData: (prevData) => prevData,
     staleTime: 1000 * 60 * 5,
   });
+
   const queryClient = useQueryClient();
 
   const { mutate: changeStatus, isPending } = useMutation({
@@ -73,13 +75,18 @@ export const ResumenCompras: React.FC = () => {
       <div className='text-center mt-10 text-red-500'>Error cargando datos</div>
     );
 
-  const totalBs = purchases.reduce((sum, p) => sum + (p.montoBs || 0), 0) ?? 0;
+  const totalBs =
+    purchases
+      .filter((purchase) => purchase.status === 'verified')
+      .reduce((sum, p) => sum + (p.montoBs || 0), 0) ?? 0;
   const totalUsd =
-    purchases.reduce((sum, p) => sum + (p.montoUsd || 0), 0) ?? 0;
+    purchases
+      .filter((purchase) => purchase.status === 'verified')
+      .reduce((sum, p) => sum + (p.montoUsd || 0), 0) ?? 0;
 
   return (
     <div className='p-2 sm:p-4 md:p-6'>
-      {/* Stats - mobile stacks, desktop grid */}
+      {/* Summary cards */}
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 mb-4 md:mb-8'>
         <div className='bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center'>
           <span className='text-base sm:text-lg'>Total compras</span>
@@ -88,13 +95,13 @@ export const ResumenCompras: React.FC = () => {
           </span>
         </div>
         <div className='bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center'>
-          <span className='text-base sm:text-lg'>Total Bs</span>
+          <span className='text-base sm:text-lg'>Total Verificados Bs</span>
           <span className='text-xl sm:text-2xl font-bold'>
             {totalBs.toLocaleString()}
           </span>
         </div>
         <div className='bg-gray-800 rounded-lg shadow p-4 flex flex-col items-center'>
-          <span className='text-base sm:text-lg'>Total USD</span>
+          <span className='text-base sm:text-lg'>Total Verificados USD</span>
           <span className='text-xl sm:text-2xl font-bold'>
             ${totalUsd.toFixed(2)}
           </span>
@@ -117,35 +124,43 @@ export const ResumenCompras: React.FC = () => {
               r='10'
               stroke='currentColor'
               strokeWidth='4'
-            ></circle>
+            />
             <path
               className='opacity-75'
               fill='currentColor'
               d='M4 12a8 8 0 018-8v8H4z'
-            ></path>
+            />
           </svg>
           Actualizando datos...
         </div>
       )}
 
-      {/* MOBILE FIRST: Cards */}
+      {/* Mobile view */}
       <div className='block md:hidden'>
         <div className='space-y-4'>
           {purchases.map((p) => (
             <div key={p.user.id} className='bg-gray-900 rounded-lg shadow p-4'>
               <div className='flex flex-wrap items-center gap-2 mb-2'>
-                <span className='font-bold'>Usuario:</span> {p.user.name}
+                <span className='font-bold'>Usuario:</span>{' '}
                 <button
-                  className='ml-2 px-2 py-1 rounded bg-gray-700 text-xs text-white hover:bg-gray-600'
+                  className='text-white hover:text-accent underline font-medium'
                   onClick={() => setSelectedUser(p.user)}
-                  title='Ver detalles'
                   type='button'
+                  title='Ver detalles del usuario'
                 >
-                  Detalles
+                  {p.user.name}
                 </button>
               </div>
               <div>
-                <span className='font-semibold'>Cantidad:</span> {p.quantity}
+                <span className='font-semibold'>Cantidad:</span>{' '}
+                <button
+                  className='text-white hover:text-accent underline font-medium'
+                  onClick={() => setSelectedTickets(p.tickets)}
+                  type='button'
+                  title='Ver números de los tickets'
+                >
+                  {p.quantity}
+                </button>
               </div>
               <div>
                 <span className='font-semibold'>Monto Bs:</span> {p.montoBs}
@@ -161,7 +176,7 @@ export const ResumenCompras: React.FC = () => {
                 {p.transactionDigits}
               </div>
               <div>
-                <span className='font-semibold'>Estado:</span>{' '}
+                <span className='font-semibold'>Estado:</span>
                 <div className='flex flex-col gap-1 mt-1 w-fit'>
                   <select
                     value={editingStatus[p.id] ?? p.status}
@@ -227,7 +242,7 @@ export const ResumenCompras: React.FC = () => {
         </div>
       </div>
 
-      {/* Desktop Table */}
+      {/* Desktop view */}
       <div className='hidden md:block overflow-x-auto bg-gray-900 rounded-lg shadow'>
         <table className='min-w-full divide-y divide-gray-700'>
           <thead className='bg-gray-800'>
@@ -262,23 +277,34 @@ export const ResumenCompras: React.FC = () => {
           <tbody className='divide-y divide-gray-700'>
             {purchases.map((p) => (
               <tr key={p.user.id}>
-                <td className='px-2 md:px-4 py-2 flex items-center gap-2'>
-                  {p.user.name}
+                <td className='px-2 md:px-4 py-2 text-center'>
                   <button
-                    className='ml-2 px-2 py-1 rounded bg-gray-700 text-xs text-white hover:bg-gray-600'
+                    className='text-white hover:text-gray-400 underline font-medium transition-colors duration-200'
                     onClick={() => setSelectedUser(p.user)}
-                    title='Ver detalles'
                     type='button'
+                    title='Ver detalles del usuario'
                   >
-                    Detalles
+                    {p.user.name}
                   </button>
                 </td>
-                <td className='px-2 md:px-4 py-2'>{p.quantity}</td>
-                <td className='px-2 md:px-4 py-2'>{p.montoBs}</td>
-                <td className='px-2 md:px-4 py-2'>{p.montoUsd}</td>
+                <td className='px-2 md:px-4 py-2 text-center'>
+                  <button
+                    className='text-white hover:text-accent underline font-medium'
+                    onClick={() => setSelectedTickets(p.tickets)}
+                    type='button'
+                    title='Ver números de los tickets'
+                  >
+                    {p.quantity}
+                  </button>
+                </td>
+
+                <td className='px-2 md:px-4 py-2 text-center'>{p.montoBs}</td>
+                <td className='px-2 md:px-4 py-2 text-center'>{p.montoUsd}</td>
                 <td className='px-2 md:px-4 py-2'>{p.paymentMethod}</td>
-                <td className='px-2 md:px-4 py-2'>{p.transactionDigits}</td>
-                <td className='px-2 md:px-4 py-2'>
+                <td className='px-2 md:px-4 py-2 text-center'>
+                  {p.transactionDigits}
+                </td>
+                <td className='px-2 md:px-4 py-2 text-center'>
                   <select
                     value={editingStatus[p.id] ?? p.status}
                     onChange={(e) =>
@@ -342,7 +368,7 @@ export const ResumenCompras: React.FC = () => {
         </table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       <div className='flex gap-2 my-4'>
         <button
           disabled={page === 1}
@@ -363,7 +389,7 @@ export const ResumenCompras: React.FC = () => {
         </button>
       </div>
 
-      {/* Modal for large image */}
+      {/* Image Modal */}
       {modalImage && (
         <div
           className='fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80'
@@ -401,7 +427,7 @@ export const ResumenCompras: React.FC = () => {
         </div>
       )}
 
-      {/* Modal for user details */}
+      {/* User Details Modal */}
       {selectedUser && (
         <div
           className='fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-80'
@@ -429,6 +455,49 @@ export const ResumenCompras: React.FC = () => {
             <button
               className='absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1 hover:bg-opacity-100 transition'
               onClick={() => setSelectedUser(null)}
+              aria-label='Cerrar'
+              type='button'
+            >
+              <svg
+                className='h-5 w-5 text-black'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M6 18L18 6M6 6l12 12'
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {selectedTickets && (
+        <div
+          className='fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-80'
+          onClick={() => setSelectedTickets(null)}
+        >
+          <div
+            className='relative bg-gray-900 p-6 rounded-xl shadow-xl min-w-[320px] max-w-[90vw]'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className='text-lg font-bold mb-4'>Tickets comprados</h2>
+            {selectedTickets.length > 0 ? (
+              <p className='text-sm text-white break-words'>
+                {selectedTickets.join(', ')}
+              </p>
+            ) : (
+              <p className='text-sm text-gray-400'>
+                No hay tickets registrados.
+              </p>
+            )}
+            <button
+              className='absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1 hover:bg-opacity-100 transition'
+              onClick={() => setSelectedTickets(null)}
               aria-label='Cerrar'
               type='button'
             >

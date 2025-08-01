@@ -28,8 +28,13 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
         'Ganadores deben presentar comprobante válido para validar su premio.',
     },
     {
+      title: 'Compra Mínima de Boletos',
+      content:
+        'Para efectos de participación válida en el sorteo, el usuario deberá adquirir un mínimo de dos (2) boletos por operación. No se aceptarán compras inferiores a esta cantidad.',
+    },
+    {
       title: 'Datos Adicionales',
-      content: 'Se solicitará cédula, orden de compra y captura de pago.',
+      content: 'Se solicitará orden de compra y captura de pago.',
     },
     {
       title: 'Redes Sociales',
@@ -70,6 +75,11 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
       link: 'https://tripletachira.com',
     },
     {
+      title: 'Autorización de Uso de Imagen de los Ganadores',
+      content:
+        'Al participar y resultar ganador, el usuario acepta ceder su imagen para la creación de contenido audiovisual relacionado con el sorteo, así como su difusión en redes sociales y en la entrega del premio. Esta condición es obligatoria.',
+    },
+    {
       title: 'Comprobantes Incorrectos',
       content:
         'Si el comprobante es ilegible o incorrecto, se notificará al usuario. Si no se corrige a tiempo, el ticket será anulado y el monto quedará como abono.',
@@ -102,7 +112,7 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
           </h2>
         </div>
 
-        <div className='space-y-6 text-sm text-gray-300 leading-relaxed pr-1'>
+        <div className='space-y-4 text-sm text-gray-300 leading-relaxed pr-1'>
           <p>
             Bienvenido a nuestra plataforma de rifas. Al acceder y utilizar
             nuestros servicios, aceptas los siguientes términos:
@@ -127,13 +137,13 @@ export const TermsModal = ({ isOpen, onClose }: TermsModalProps) => {
             </div>
           ))}
 
-          <p className='text-xs text-center text-gray-500 mt-8'>
+          <p className='text-xs text-center text-gray-500 mt-6'>
             © 2025 | Todos los derechos reservados •{' '}
           </p>
         </div>
 
         {/* Footer Button */}
-        <div className='mt-8 flex justify-end'>
+        <div className='mt-2 flex justify-end'>
           <button
             onClick={onClose}
             className='bg-[#2f00ff] px-5 py-2 rounded-md text-white font-semibold shadow'

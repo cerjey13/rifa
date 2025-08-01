@@ -43,17 +43,16 @@ export const Header = () => {
                 </a>
               )}
               <button
-                onClick={() => logout.mutate()}
+                onClick={() => {
+                  logout.mutate(undefined, {
+                    onSuccess: () => {
+                      setTimeout(() => window.location.reload(), 50);
+                    },
+                  });
+                }}
                 className='hover:text-orange-400'
               >
-                <a
-                  href='/'
-                  target='_self'
-                  rel='noreferrer'
-                  className='hover:text-[#F97316] transition-colors'
-                >
-                  Cerrar Sesión
-                </a>
+                Cerrar Sesión
               </button>
             </>
           )}

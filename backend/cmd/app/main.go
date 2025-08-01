@@ -37,9 +37,10 @@ func main() {
 	dbAdapter := database.NewPgxpoolAdapter(db)
 	front := http.FS(dist)
 	server, err := core.NewHttpServer(dbAdapter, front, core.HttpServerOptions{
-		Logger: logger,
-		Host:   cfg.Host,
-		Port:   cfg.Port,
+		Logger:        logger,
+		Host:          cfg.Host,
+		Port:          cfg.Port,
+		SecureCookies: cfg.UseSecureCookie,
 	})
 	if err != nil {
 		log.Fatal("failed to config the server")

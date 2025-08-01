@@ -130,11 +130,13 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID:   "updatePurchase",
-			Method:        http.MethodPatch,
-			Path:          "/api/purchases",
-			Summary:       "Update a purchase status (admin only)",
-			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			OperationID: "updatePurchase",
+			Method:      http.MethodPatch,
+			Path:        "/api/purchases",
+			Summary:     "Update a purchase status (admin only)",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireAdminSession(api),
+			},
 			DefaultStatus: http.StatusNoContent,
 		},
 		func(

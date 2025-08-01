@@ -58,6 +58,9 @@ type HttpServerOptions struct {
 
 	// Middlewares is a list of middlewares to be applied to the server
 	Middlewares []func(http.Handler) http.Handler
+
+	//
+	SecureCookies bool
 }
 type HttpServer struct {
 	*chi.Mux
@@ -74,6 +77,7 @@ func NewHttpServer(
 	if opts.Logger == nil {
 		return nil, fmt.Errorf("logger is required")
 	}
+
 	router := chi.NewRouter()
 	router.Use(chimdw.Logger)
 	router.Use(httprate.LimitAll(10, 1*time.Second))
@@ -84,7 +88,7 @@ func NewHttpServer(
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
 	api := humachi.New(router, apiConfig)
-	httpx.RegisterAuthRoutes(api, db)
+	httpx.RegisterAuthRoutes(api, opts.SecureCookies, db)
 	httpx.RegisterPurchaseRoutes(api, db)
 	httpx.RegisterTicketsRoutes(api, db)
 

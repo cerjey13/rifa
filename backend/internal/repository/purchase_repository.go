@@ -8,6 +8,7 @@ import (
 	"rifa/backend/api/httpx/form"
 	"rifa/backend/internal/types"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/utils"
 )
 
 type PurchaseRepository interface {
@@ -62,8 +63,12 @@ func (r *purchaseRepo) GetAll(
 	query := `SELECT u.id, u.name, u.email, u.phone,
     p.id, p.quantity, p.monto_bs, p.monto_usd, p.payment_method,
     p.transaction_digits, p.payment_screenshot, p.status, p.created_at,
+	COALESCE(
+  	ARRAY_AGG(t.number ORDER BY t.number) FILTER (WHERE t.number IS NOT NULL),
+  	'{}') AS numbers,
 	COUNT(*) OVER() as total_count
-	FROM purchases p JOIN users u ON p.user_id = u.id `
+	FROM purchases p JOIN users u ON p.user_id = u.id
+	LEFT JOIN tickets t ON t.purchase_id = p.id `
 
 	argIdx := 1
 	if filters.PurchaseStatus != "" {
@@ -82,7 +87,13 @@ func (r *purchaseRepo) GetAll(
 		page = 1
 	}
 	offset := (page - 1) * perPage
-	query += "ORDER BY p.created_at DESC "
+	query += `
+	GROUP BY 
+		u.id, u.name, u.email, u.phone,
+		p.id, p.quantity, p.monto_bs, p.monto_usd, p.payment_method,
+		p.transaction_digits, p.payment_screenshot, p.status, p.created_at
+	ORDER BY p.created_at DESC
+	`
 	query += fmt.Sprintf("LIMIT $%d OFFSET $%d", argIdx, argIdx+1)
 	args = append(args, perPage, offset)
 
@@ -96,6 +107,7 @@ func (r *purchaseRepo) GetAll(
 	var total int
 	for rows.Next() {
 		var p form.Purchases
+		var numbers []int
 		var rowTotal int
 		err := rows.Scan(
 			&p.User.ID,
@@ -111,6 +123,7 @@ func (r *purchaseRepo) GetAll(
 			&p.PaymentScreenshot,
 			&p.Status,
 			&p.CreatedAt,
+			&numbers,
 			&rowTotal,
 		)
 		if err != nil {
@@ -119,9 +132,9 @@ func (r *purchaseRepo) GetAll(
 		if total == 0 {
 			total = rowTotal
 		}
+		p.Tickets = utils.ConvertToStrSlice(numbers)
 		purchases = append(purchases, p)
 	}
-
 	return purchases, total, nil
 }
 
