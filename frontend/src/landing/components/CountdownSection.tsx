@@ -15,8 +15,8 @@ export const CountdownSection = () => {
 
   if (isLoading)
     return <p className='text-gray-400'>Cargando disponibilidad...</p>;
-  if (isError || !vendidos)
-    return <p className='text-red-500'>Error al cargar disponibilidad</p>;
+  // if (isError || !vendidos)
+  //  {vendidos = 0}
 
   return (
     <div className='p-4 space-y-4 max-w-lg mx-auto'>
@@ -27,7 +27,7 @@ export const CountdownSection = () => {
         </span>
       </div>
 
-      <ProgressBar percentage={vendidos} />
+      <ProgressBar percentage={vendidos ?? 0} />
       <p className='text-right text-brandLightGray'>{vendidos}% Vendido</p>
     </div>
   );
