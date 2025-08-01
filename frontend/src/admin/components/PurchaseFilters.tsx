@@ -35,7 +35,7 @@ export const PurchaseFilters: React.FC<PurchaseFiltersProps> = ({
         <SelectContent className='bg-gray-900 text-white border-gray-700'>
           <SelectItem value='all'>Todos</SelectItem>
           <SelectItem value='pending'>Pendiente</SelectItem>
-          <SelectItem value='verified'>Completado</SelectItem>
+          <SelectItem value='verified'>Verificado</SelectItem>
           <SelectItem value='cancelled'>Cancelado</SelectItem>
         </SelectContent>
       </Select>

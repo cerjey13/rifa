@@ -16,7 +16,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RegisterAuthRoutes(api huma.API, db database.DB) {
+func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
 	srv := auth.NewAuthService(db)
 
 	huma.Register(
@@ -75,7 +75,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 					Value:    user.AccessToken,
 					Path:     "/",
 					HttpOnly: true,
-					Secure:   false,
+					Secure:   secureCookies,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(7 * 24 * time.Hour),
 				},
@@ -124,7 +124,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB) {
 					Value:    "",
 					Path:     "/",
 					HttpOnly: true,
-					Secure:   true,
+					Secure:   secureCookies,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(-1 * time.Hour),
 					MaxAge:   -1,

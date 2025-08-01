@@ -35,6 +35,7 @@ type Purchases struct {
 	User              User      `json:"user"`
 	ID                string    `json:"id"`
 	Quantity          int       `json:"quantity"`
+	Tickets           []string  `json:"tickets"`
 	MontoBs           float64   `json:"montoBs"`
 	MontoUSD          float64   `json:"montoUsd"`
 	PaymentMethod     string    `json:"paymentMethod"`

@@ -7,11 +7,12 @@ import (
 )
 
 type Config struct {
-	Port        string `env:"PORT" envDefault:"8080"`
-	Host        string `env:"HOST" envDefault:"0.0.0.0"`
-	Env         string `env:"APP_ENV" envDefault:"development"`
-	JwtSecret   string `env:"JWT_SECRET"`
-	DatabaseUrl string `env:"DATABASE_URL"`
+	Port            string `env:"PORT" envDefault:"8080"`
+	Host            string `env:"HOST" envDefault:"0.0.0.0"`
+	Env             string `env:"APP_ENV" envDefault:"development"`
+	UseSecureCookie bool   `env:"COOKIE_SECURE" envDefault:"false"`
+	JwtSecret       string `env:"JWT_SECRET"`
+	DatabaseUrl     string `env:"DATABASE_URL"`
 }
 
 var once sync.Once

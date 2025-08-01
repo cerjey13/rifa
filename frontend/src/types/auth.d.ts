@@ -12,6 +12,7 @@ interface Purchase {
   user: Omit<User, 'role'>;
   id: string;
   quantity: number;
+  tickets: string[];
   montoBs: number;
   montoUsd: number;
   paymentMethod: string;
