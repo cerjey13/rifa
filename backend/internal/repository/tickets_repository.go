@@ -226,6 +226,10 @@ func (r *ticketRepo) GetAvailabilityPercentage(
 	var percent float64
 	err := r.db.QueryRow(ctx, query, lotteryID).Scan(&percent)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// No rows, return 0% safely
+			return 0, nil
+		}
 		return 0, err
 	}
 
