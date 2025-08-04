@@ -26,9 +26,9 @@ export const CountdownSection = () => {
         </span>
       </div>
 
-      <ProgressBar percentage={safePercentage || 0} />
+      <ProgressBar percentage={safePercentage} />
       <p className='text-right text-brandLightGray'>
-        {safePercentage || 0}% Vendido
+        {safePercentage}% Vendido
       </p>
     </div>
   );
