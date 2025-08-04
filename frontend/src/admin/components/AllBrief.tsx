@@ -138,6 +138,11 @@ export const ResumenCompras: React.FC = () => {
       {/* Mobile view */}
       <div className='block md:hidden'>
         <div className='space-y-4'>
+          {!isFetching && purchases.length === 0 && (
+            <div className='text-center text-gray-400 my-6'>
+              No hay resultados para mostrar.
+            </div>
+          )}
           {purchases.map((p) => (
             <div key={p.user.id} className='bg-gray-900 rounded-lg shadow p-4'>
               <div className='flex flex-wrap items-center gap-2 mb-2'>
@@ -275,95 +280,110 @@ export const ResumenCompras: React.FC = () => {
             </tr>
           </thead>
           <tbody className='divide-y divide-gray-700'>
-            {purchases.map((p) => (
-              <tr key={p.user.id}>
-                <td className='px-2 md:px-4 py-2 text-center'>
-                  <button
-                    className='text-white hover:text-gray-400 underline font-medium transition-colors duration-200'
-                    onClick={() => setSelectedUser(p.user)}
-                    type='button'
-                    title='Ver detalles del usuario'
-                  >
-                    {p.user.name}
-                  </button>
-                </td>
-                <td className='px-2 md:px-4 py-2 text-center'>
-                  <button
-                    className='text-white hover:text-accent underline font-medium'
-                    onClick={() => setSelectedTickets(p.tickets)}
-                    type='button'
-                    title='Ver números de los tickets'
-                  >
-                    {p.quantity}
-                  </button>
-                </td>
-
-                <td className='px-2 md:px-4 py-2 text-center'>{p.montoBs}</td>
-                <td className='px-2 md:px-4 py-2 text-center'>{p.montoUsd}</td>
-                <td className='px-2 md:px-4 py-2'>{p.paymentMethod}</td>
-                <td className='px-2 md:px-4 py-2 text-center'>
-                  {p.transactionDigits}
-                </td>
-                <td className='px-2 md:px-4 py-2 text-center'>
-                  <select
-                    value={editingStatus[p.id] ?? p.status}
-                    onChange={(e) =>
-                      setEditingStatus((prev) => ({
-                        ...prev,
-                        [p.id]: e.target.value as PurchaseStatus,
-                      }))
-                    }
-                    disabled={isPending}
-                    className='bg-gray-800 text-white capitalize rounded px-2 py-1'
-                  >
-                    {Object.entries(statusEs).map(([value, label]) => (
-                      <option className='capitalize' value={value} key={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                  {editingStatus[p.id] && editingStatus[p.id] !== p.status && (
-                    <button
-                      className='mt-1 px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
-                      onClick={() => {
-                        changeStatus({
-                          transactionID: p.id,
-                          status: editingStatus[p.id],
-                        });
-                        setEditingStatus((prev) => {
-                          const copy = { ...prev };
-                          delete copy[p.id];
-                          return copy;
-                        });
-                      }}
-                      disabled={isPending}
-                      type='button'
-                    >
-                      Confirmar
-                    </button>
-                  )}
-                </td>
-                <td className='px-2 md:px-4 py-2 capitalize'>
-                  {formatDateES(p.date)}
-                </td>
-                <td className='px-2 md:px-4 py-2'>
-                  {p.paymentScreenshot ? (
-                    <img
-                      src={`data:image/png;base64,${p.paymentScreenshot}`}
-                      alt='Comprobante'
-                      className='h-12 w-12 object-contain border rounded shadow cursor-pointer'
-                      onClick={() =>
-                        setModalImage(
-                          `data:image/png;base64,${p.paymentScreenshot}`,
-                        )
-                      }
-                    />
-                  ) : (
-                    <span className='text-gray-500'>—</span>
-                  )}
+            {purchases.length === 0 ? (
+              <tr>
+                <td colSpan={9} className='text-center text-gray-400 py-6'>
+                  No hay resultados para mostrar.
                 </td>
               </tr>
-            ))}
+            ) : (
+              purchases.map((p) => (
+                <tr key={p.user.id}>
+                  <td className='px-2 md:px-4 py-2 text-center'>
+                    <button
+                      className='text-white hover:text-gray-400 underline font-medium transition-colors duration-200'
+                      onClick={() => setSelectedUser(p.user)}
+                      type='button'
+                      title='Ver detalles del usuario'
+                    >
+                      {p.user.name}
+                    </button>
+                  </td>
+                  <td className='px-2 md:px-4 py-2 text-center'>
+                    <button
+                      className='text-white hover:text-accent underline font-medium'
+                      onClick={() => setSelectedTickets(p.tickets)}
+                      type='button'
+                      title='Ver números de los tickets'
+                    >
+                      {p.quantity}
+                    </button>
+                  </td>
+
+                  <td className='px-2 md:px-4 py-2 text-center'>{p.montoBs}</td>
+                  <td className='px-2 md:px-4 py-2 text-center'>
+                    {p.montoUsd}
+                  </td>
+                  <td className='px-2 md:px-4 py-2'>{p.paymentMethod}</td>
+                  <td className='px-2 md:px-4 py-2 text-center'>
+                    {p.transactionDigits}
+                  </td>
+                  <td className='px-2 md:px-4 py-2 text-center'>
+                    <select
+                      value={editingStatus[p.id] ?? p.status}
+                      onChange={(e) =>
+                        setEditingStatus((prev) => ({
+                          ...prev,
+                          [p.id]: e.target.value as PurchaseStatus,
+                        }))
+                      }
+                      disabled={isPending}
+                      className='bg-gray-800 text-white capitalize rounded px-2 py-1'
+                    >
+                      {Object.entries(statusEs).map(([value, label]) => (
+                        <option
+                          className='capitalize'
+                          value={value}
+                          key={value}
+                        >
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                    {editingStatus[p.id] &&
+                      editingStatus[p.id] !== p.status && (
+                        <button
+                          className='mt-1 px-2 py-1 rounded bg-blue-600 text-xs text-white hover:bg-blue-700'
+                          onClick={() => {
+                            changeStatus({
+                              transactionID: p.id,
+                              status: editingStatus[p.id],
+                            });
+                            setEditingStatus((prev) => {
+                              const copy = { ...prev };
+                              delete copy[p.id];
+                              return copy;
+                            });
+                          }}
+                          disabled={isPending}
+                          type='button'
+                        >
+                          Confirmar
+                        </button>
+                      )}
+                  </td>
+                  <td className='px-2 md:px-4 py-2 capitalize'>
+                    {formatDateES(p.date)}
+                  </td>
+                  <td className='px-2 md:px-4 py-2'>
+                    {p.paymentScreenshot ? (
+                      <img
+                        src={`data:image/png;base64,${p.paymentScreenshot}`}
+                        alt='Comprobante'
+                        className='h-12 w-12 object-contain border rounded shadow cursor-pointer'
+                        onClick={() =>
+                          setModalImage(
+                            `data:image/png;base64,${p.paymentScreenshot}`,
+                          )
+                        }
+                      />
+                    ) : (
+                      <span className='text-gray-500'>—</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

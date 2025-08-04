@@ -13,9 +13,20 @@ export const Header = () => {
   return (
     <>
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
-        <a href='/'>
-          <img src='/logo.jpg' alt='Logo' className='h-10' />
-        </a>
+        <div className='flex items-center gap-3'>
+          <a href='/'>
+            <img src='/logo.jpg' alt='Logo' className='h-10' />
+          </a>
+          {user && (
+            <span
+              title={user.email}
+              className='text-sm sm:text-base font-medium text-white truncate max-w-[120px] sm:max-w-none'
+            >
+              Hola {user.name}!
+            </span>
+          )}
+        </div>
+
         <nav className='flex items-center space-x-6 font-semibold text-sm'>
           {!user && (
             <button

@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"rifa/backend/api/httpx/dto"
@@ -22,6 +24,11 @@ type PurchaseRepository interface {
 		ctx context.Context,
 		filters dto.GetMostPurchases,
 	) ([]form.MostPurchases, error)
+	FindUserPurchasesByTicket(
+		ctx context.Context,
+		lotteryID,
+		ticketNumber string,
+	) (form.SearchResult, error)
 }
 
 type purchaseRepo struct{ db database.DB }
@@ -143,11 +150,42 @@ func (r *purchaseRepo) UpdateStatus(
 	purchaseID,
 	status string,
 ) error {
-	err := r.db.ExecContext(ctx,
+	tx, err := r.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	err = tx.ExecContext(ctx,
 		`UPDATE purchases SET status = $1 WHERE id = $2`,
 		status, purchaseID,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	if status == string(types.StatusCancelled) {
+		err = tx.ExecContext(ctx, `
+			UPDATE tickets
+			SET
+				status = 'available',
+				user_id = NULL,
+				purchase_id = NULL,
+				reserved_at = NULL
+			WHERE purchase_id = $1 AND user_id IS NOT NULL
+		`, purchaseID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *purchaseRepo) GetLeaderboard(
@@ -202,4 +240,46 @@ func (r *purchaseRepo) GetLeaderboard(
 	}
 
 	return leaderboard, nil
+}
+
+func (r *purchaseRepo) FindUserPurchasesByTicket(
+	ctx context.Context,
+	lotteryID,
+	ticketNumber string,
+) (form.SearchResult, error) {
+	const query = `
+		SELECT 
+			u.id, u.name, u.email, u.phone,
+			ARRAY(
+				SELECT t2.number
+				FROM tickets t2
+				WHERE t2.user_id = u.id AND t2.lottery_id = $1
+				ORDER BY t2.number
+			) AS ticket_numbers
+		FROM tickets t
+		JOIN users u ON u.id = t.user_id
+		WHERE t.lottery_id = $1 AND t.number = $2 AND t.status = 'sold'
+		LIMIT 1
+	`
+	var (
+		user       form.User
+		ticketNums []int
+	)
+
+	err := r.db.QueryRow(ctx, query, lotteryID, ticketNumber).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Phone,
+		&ticketNums,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return form.SearchResult{}, nil
+		}
+		return form.SearchResult{}, err
+	}
+
+	stringTickets := utils.ConvertToStrSlice(ticketNums)
+	return form.SearchResult{User: &user, Tickets: stringTickets}, nil
 }

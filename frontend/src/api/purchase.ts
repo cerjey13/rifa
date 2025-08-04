@@ -99,3 +99,21 @@ export async function fetchMostPurchases(
   const total = parseInt(totalStr, 10);
   return { purchases: purchase, total };
 }
+
+interface SearchResult {
+  user: Omit<User, 'role'>;
+  tickets: string[];
+}
+
+export async function fetchSearchByNumber(
+  num: string,
+): Promise<SearchResult | null> {
+  const urlParams = new URLSearchParams();
+  urlParams.append('number', num);
+  const res = await fetch(`/api/purchases/search?${urlParams.toString()}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Error buscando el número');
+  return await res.json();
+}

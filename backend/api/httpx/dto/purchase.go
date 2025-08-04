@@ -42,3 +42,11 @@ type UpdatePurchase struct {
 		Status string `json:"status"`
 	}
 }
+
+type SearchPurchase struct {
+	Number string `query:"number"`
+}
+
+type SearchPurchaseOutput struct {
+	Body form.SearchResult
+}

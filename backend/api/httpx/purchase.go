@@ -104,7 +104,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	})
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "listPurchases",
+		OperationID:   "leaderboard",
 		Method:        http.MethodGet,
 		Path:          "/api/purchases/leaderboard",
 		Summary:       "List purchases by user with the most buyed",
@@ -139,10 +139,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			},
 			DefaultStatus: http.StatusNoContent,
 		},
-		func(
-			ctx context.Context,
-			input *dto.UpdatePurchase,
-		) (*struct{}, error) {
+		func(ctx context.Context, input *dto.UpdatePurchase) (*struct{}, error) {
 			err := srv.UpdateStatus(ctx, input.ID, input.Body.Status)
 			if err != nil {
 				log.Println(err)
@@ -152,6 +149,34 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			}
 
 			return nil, nil
+		},
+	)
+
+	huma.Register(
+		api,
+		huma.Operation{
+			OperationID: "purchaseByNumber",
+			Method:      http.MethodGet,
+			Path:        "/api/purchases/search",
+			Summary:     "Search for a user data by number bought (admin only)",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireAdminSession(api),
+			},
+			DefaultStatus: http.StatusOK,
+		},
+		func(
+			ctx context.Context,
+			input *dto.SearchPurchase,
+		) (*dto.SearchPurchaseOutput, error) {
+			searched, err := srv.FindUserPurchasesByTicket(ctx, input.Number)
+			if err != nil {
+				log.Println(err)
+				return nil, huma.Error500InternalServerError(
+					"Failed to retrieve number data",
+				)
+			}
+
+			return &dto.SearchPurchaseOutput{Body: searched}, nil
 		},
 	)
 }

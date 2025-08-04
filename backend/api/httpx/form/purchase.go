@@ -56,3 +56,8 @@ type MostPurchases struct {
 	User     User `json:"user"`
 	Quantity int  `json:"quantity"`
 }
+
+type SearchResult struct {
+	User    *User    `json:"user,omitempty"`
+	Tickets []string `json:"tickets,omitempty"`
+}

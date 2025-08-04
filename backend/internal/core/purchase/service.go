@@ -25,6 +25,10 @@ type Service interface {
 		ctx context.Context,
 		filters dto.GetMostPurchases,
 	) ([]form.MostPurchases, error)
+	FindUserPurchasesByTicket(
+		ctx context.Context,
+		ticketNumber string,
+	) (form.SearchResult, error)
 }
 
 type service struct {
@@ -116,4 +120,21 @@ func (s *service) GetLeaderboard(
 	filters dto.GetMostPurchases,
 ) ([]form.MostPurchases, error) {
 	return s.repo.GetLeaderboard(ctx, filters)
+}
+
+func (s *service) FindUserPurchasesByTicket(
+	ctx context.Context,
+	ticketNumber string,
+) (form.SearchResult, error) {
+	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
+	if err != nil {
+		return form.SearchResult{}, err
+	}
+
+	user, err := s.repo.FindUserPurchasesByTicket(ctx, lotteryID, ticketNumber)
+	if err != nil {
+		return form.SearchResult{}, err
+	}
+
+	return user, nil
 }

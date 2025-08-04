@@ -1,26 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { fetchSearchByNumber } from '@src/api/tickets';
+import { fetchSearchByNumber } from '@src/api/purchase';
 
 export const Searcher: React.FC = () => {
   const [query, setQuery] = useState('');
-  const [submittedQuery, setSubmittedQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<Omit<User, 'role'> | null>(
     null,
   );
+  const [triggered, setTriggered] = useState(false);
 
-  const { data: result, isFetching } = useQuery({
-    queryKey: ['search-number', submittedQuery],
-    queryFn: () => fetchSearchByNumber(submittedQuery),
-    enabled: !!submittedQuery,
+  const {
+    data: result,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['search-number', query],
+    queryFn: () => fetchSearchByNumber(query),
+    enabled: false,
   });
 
   const isValidQuery = /^\d{1,4}$/.test(query) && +query >= 0 && +query <= 9999;
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (isValidQuery) {
-      setSubmittedQuery(query.trim());
+      await refetch();
+      setTriggered(true);
     }
   };
+
+  const isEmptyResult =
+    triggered && result && (!result.user || !Array.isArray(result.tickets));
 
   return (
     <div className='overflow-x-auto bg-gray-900 rounded-lg shadow p-4 space-y-4'>
@@ -58,23 +66,26 @@ export const Searcher: React.FC = () => {
           </tr>
         </thead>
         <tbody className='divide-y divide-gray-700'>
-          {result && (
+          {isEmptyResult && (
+            <tr>
+              <td colSpan={2} className='text-center px-4 py-6 text-gray-400'>
+                No hay resultados para el número "{query}".
+              </td>
+            </tr>
+          )}
+
+          {result && !isEmptyResult && (
             <tr key={result.user.id}>
               <td className='px-2 md:px-4 py-2'>
                 <button
-                  className='text-orange-400 hover:underline'
+                  className='text-white underline hover:underline'
                   onClick={() => setSelectedUser(result.user)}
                 >
                   {result.user.name}
                 </button>
               </td>
-              <td className='px-2 md:px-4 py-2'>{result.tickets.join(', ')}</td>
-            </tr>
-          )}
-          {!result && !isFetching && submittedQuery && (
-            <tr>
-              <td colSpan={2} className='text-center px-4 py-6 text-gray-400'>
-                No hay resultados para "{submittedQuery}".
+              <td className='px-2 md:px-4 py-2'>
+                {result.tickets?.join(', ') || '—'}
               </td>
             </tr>
           )}
