@@ -25,8 +25,8 @@ DECLARE
     initial_lottery_id UUID;
 BEGIN
     -- Insert the initial lottery
-    INSERT INTO lotteries (id, name)
-    VALUES (uuid7(), 'Primera rifa')
+    INSERT INTO lotteries (id, name, active)
+    VALUES (uuid7(), 'Primera rifa', true)
     RETURNING id INTO initial_lottery_id;
 
     -- Seed 10,000 tickets for the initial lottery

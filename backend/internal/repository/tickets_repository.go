@@ -79,7 +79,6 @@ func (r *ticketRepo) AssignTickets(
 
 	// Assign explicitly chosen numbers
 	for _, number := range intNumbers {
-		fmt.Println("explicit numbers loop")
 		ticket := types.Ticket{}
 		res := tx.QueryRow(ctx,
 			`UPDATE tickets
@@ -90,7 +89,10 @@ func (r *ticketRepo) AssignTickets(
 		)
 		if err := res.Scan(&ticket.ID, &ticket.Number); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return nil, fmt.Errorf("ticket number %d is no longer available", number)
+				return nil, fmt.Errorf(
+					"ticket number %d is no longer available",
+					number,
+				)
 			}
 			return nil, err
 		}
@@ -103,9 +105,7 @@ func (r *ticketRepo) AssignTickets(
 
 	// Assign random available tickets for the remainder
 	remaining := quantity - len(intNumbers)
-	fmt.Println("remaining", remaining)
 	if remaining > 0 {
-		fmt.Println("random numbers loop")
 		rows, err := tx.Query(ctx,
 			`SELECT id
 			 FROM tickets
@@ -241,12 +241,10 @@ func (r *ticketRepo) GetUserTickets(
 	userID string,
 	lotteryID string,
 ) ([]int, error) {
-	query := `
-		SELECT number
+	query := `SELECT number
 		FROM tickets
 		WHERE user_id = $1 AND lottery_id = $2
-		ORDER BY number ASC
-	`
+		ORDER BY number ASC`
 
 	rows, err := r.db.Query(ctx, query, userID, lotteryID)
 	if err != nil {
@@ -267,5 +265,5 @@ func (r *ticketRepo) GetUserTickets(
 		return nil, rows.Err()
 	}
 
-	return tickets, nil // returns empty slice if no tickets
+	return tickets, nil
 }

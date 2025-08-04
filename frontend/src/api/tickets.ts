@@ -12,24 +12,6 @@ export async function fetchUserTickets(): Promise<string[]> {
   return data.tickets;
 }
 
-interface SearchResult {
-  user: Omit<User, 'role'>;
-  tickets: string[];
-}
-
-export async function fetchSearchByNumber(
-  num: string,
-): Promise<SearchResult | null> {
-  const urlParams = new URLSearchParams();
-  urlParams.append('number', num);
-  const res = await fetch(`/api/purchases/search?${urlParams.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-  if (!res.ok) throw new Error('Error buscando el número');
-  return await res.json();
-}
-
 export async function fetchAvailableTickets(num: string[]): Promise<string[]> {
   const urlParams = new URLSearchParams();
   urlParams.append('numbers', num.join(','));
