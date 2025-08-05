@@ -8,6 +8,7 @@ import (
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
+	"rifa/backend/internal/core/email"
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
 	database "rifa/backend/pkg/db"
@@ -34,12 +35,14 @@ type Service interface {
 type service struct {
 	repo       repository.PurchaseRepository
 	ticketRepo repository.TicketRepository
+	emailer    email.Mailer
 }
 
-func NewService(db database.DB) Service {
+func NewService(db database.DB, emailClient email.Mailer) Service {
 	return &service{
 		repo:       repository.NewPurchaseRepository(db),
 		ticketRepo: repository.NewTicketRepository(db),
+		emailer:    emailClient,
 	}
 }
 
@@ -74,7 +77,7 @@ func (s *service) Create(
 		return err
 	}
 
-	tickets, err := s.ticketRepo.AssignTickets(
+	_, err = s.ticketRepo.AssignTickets(
 		ctx,
 		lotteryID,
 		req.UserID,
@@ -83,17 +86,15 @@ func (s *service) Create(
 		req.Quantity,
 	)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
-	// TODO: Send confirmation email to admin with purchase data (use Mailgun or similar).
-	// For now, mock/send to logs:
+
 	go func(p *types.Purchase) {
-		// Here you would integrate with Mailgun/sendgrid/SMTP etc.
-		// e.g., sendPurchaseEmail(p)
-		fmt.Printf("Mock email: New purchase received! %s\n", p.Status)
-		for _, t := range tickets {
-			fmt.Println(t.Number, t.Status)
+		err := s.emailer.SendPurchaseConfirmation(*p)
+		if err != nil {
+			log.Println(err)
+		} else {
+			fmt.Println("New purchase received and email send! ")
 		}
 	}(purchase)
 

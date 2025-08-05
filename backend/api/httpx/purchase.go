@@ -10,7 +10,9 @@ import (
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
+	"rifa/backend/internal/core/email"
 	"rifa/backend/internal/core/purchase"
+	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/utils"
 
@@ -19,7 +21,18 @@ import (
 )
 
 func RegisterPurchaseRoutes(api huma.API, db database.DB) {
-	srv := purchase.NewService(db)
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal("failed to load config for purchase routes")
+	}
+
+	emailer := email.NewMailerooClient(
+		cfg.MailerooApiKey,
+		cfg.EmailSender,
+		cfg.EmailReciever,
+		cfg.EmailURL,
+	)
+	srv := purchase.NewService(db, emailer)
 
 	huma.Register(
 		api,
@@ -38,12 +51,14 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			formData := input.RawBody.Data()
 			screenshot, err := io.ReadAll(formData.ScreenShot)
 			if err != nil {
+				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Could not read uploaded file",
 				)
 			}
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
+				log.Println("No session claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 

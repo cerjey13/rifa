@@ -13,16 +13,20 @@ type Config struct {
 	UseSecureCookie bool   `env:"COOKIE_SECURE" envDefault:"false"`
 	JwtSecret       string `env:"JWT_SECRET"`
 	DatabaseUrl     string `env:"DATABASE_URL"`
+	MailerooApiKey  string `env:"EMAIL_MAILEROO_API_KEY"`
+	EmailReciever   string `env:"EMAIL_ACCOUNT"`
+	EmailSender     string `env:"EMAIL_SENDER_ACCOUNT"`
+	EmailURL        string `env:"EMAIL_URL" envDefault:"https://smtp.maileroo.com/api/v2/emails"`
 }
 
-var once sync.Once
+var (
+	once sync.Once
+	cfg  *Config = &Config{}
+)
 
 // NewConfig creates a new Config instance with values from environment variables
 func NewConfig() (*Config, error) {
-	var (
-		err error
-		cfg *Config = &Config{}
-	)
+	var err error
 	once.Do(func() {
 		err = env.Parse(cfg)
 	})
