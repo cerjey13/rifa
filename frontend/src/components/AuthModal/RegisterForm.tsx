@@ -2,6 +2,7 @@ import { register } from '@src/api/auth';
 import { getErrorMessage } from '@src/utils/errors';
 import { useState } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import { TermsModal } from '../Terms/TermsModal';
 
 interface RegisterFormProps {
   onSwitch: () => void;
@@ -30,6 +31,7 @@ export const RegisterForm = ({ onSwitch }: RegisterFormProps) => {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const validate = () => {
     const newErrors = {
@@ -236,6 +238,18 @@ export const RegisterForm = ({ onSwitch }: RegisterFormProps) => {
         )}
       </div>
 
+      <p className='text-xs text-gray-400 leading-tight'>
+        Al registrarte, aceptas nuestros{' '}
+        <button
+          type='button'
+          onClick={() => setTermsOpen(true)}
+          className='text-orange-400 hover:underline font-semibold'
+        >
+          Términos y Condiciones
+        </button>
+        .
+      </p>
+
       <button
         type='submit'
         className='w-full bg-[#FF7F00] text-white py-2 rounded hover:bg-orange-600 transition'
@@ -253,6 +267,10 @@ export const RegisterForm = ({ onSwitch }: RegisterFormProps) => {
           Inicia Sesión
         </button>
       </p>
+
+      {termsOpen && (
+        <TermsModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} />
+      )}
     </form>
   );
 };

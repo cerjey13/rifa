@@ -49,7 +49,7 @@ export const Footer = () => {
               rel='noopener noreferrer'
               className='text-gray-300 hover:text-pink-500'
             >
-              +584123456789
+              04141551801
             </a>
             <p className='text-gray-300'>Caracas, Venezuela</p>
           </div>
@@ -58,7 +58,7 @@ export const Footer = () => {
             <h3 className='font-semibold text-white mb-2'>Síguenos</h3>
             <div className='flex space-x-4 text-xl'>
               <a
-                href='https://instagram.com'
+                href='https://www.instagram.com/suerteconsarah'
                 target='_blank'
                 rel='noopener noreferrer'
                 className='text-gray-300 hover:text-pink-500'
@@ -66,7 +66,7 @@ export const Footer = () => {
                 <FaInstagram />
               </a>
               <a
-                href='https://tiktok.com'
+                href='https://www.tiktok.com/@suerteconsarah'
                 target='_blank'
                 rel='noopener noreferrer'
                 className='text-gray-300 hover:text-white'
