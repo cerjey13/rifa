@@ -6,6 +6,13 @@ export const PrizeInfo = () => (
     <p className='text-lg sm:text-xl text-white font-semibold'>
       Participa y gana!
     </p>
+    <div className='flex justify-center'>
+      <img
+        src='/premio.jpg'
+        alt='rifa'
+        className='w-full max-w-xs sm:max-w-sm rounded-lg shadow-md object-cover'
+      />
+    </div>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>🏆 Premios:</span>
     </p>
