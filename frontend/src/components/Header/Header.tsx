@@ -35,7 +35,7 @@ export const Header = () => {
           {!user && (
             <button
               onClick={() => openLoginModal(false)}
-              className='bg-[#F97316] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition'
+              className='bg-[#C2410C] text-white px-4 py-2 rounded-md hover:bg-[#9A3412] transition'
             >
               Iniciar sesión / Registrarse
             </button>

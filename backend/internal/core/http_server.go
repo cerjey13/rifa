@@ -115,6 +115,7 @@ func spaHandler(staticFS http.FileSystem) http.HandlerFunc {
 		if err == nil {
 			f.Close()
 			setCacheHeaders(w, path)
+			setSecurityHeaders(w)
 			fileServer.ServeHTTP(w, r)
 			return
 		}
@@ -142,4 +143,17 @@ func isCacheableAsset(path string) bool {
 	default:
 		return false
 	}
+}
+
+func setSecurityHeaders(w http.ResponseWriter) {
+	w.Header().Set(
+		"Content-Security-Policy",
+		"default-src 'self'; img-src 'self' https: data:; script-src 'self'; style-src 'self' 'unsafe-inline'",
+	)
+	w.Header().Set(
+		"Strict-Transport-Security",
+		"max-age=63072000; includeSubDomains; preload",
+	)
+	w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+	w.Header().Set("X-Frame-Options", "DENY")
 }
