@@ -1,0 +1,9 @@
+# Allow all search engines to crawl everything
+User-agent: *
+Allow: /
+
+# Block specific sensitive folders (adjust if needed)
+Disallow: /admin/
+
+# Sitemap (add your sitemap if available)
+Sitemap: https://suerteconsarah.com/sitemap.xml
