@@ -20,7 +20,10 @@ export async function register(registerData: Register) {
   return await res.json();
 }
 
-export async function login(data: { email: string; password: string }) {
+export async function login(data: {
+  email: string;
+  password: string;
+}): Promise<User> {
   const res = await fetch('/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -10,6 +10,9 @@ export const PrizeInfo = () => (
       <img
         src='/premio.jpg'
         alt='rifa'
+        width='300'
+        height='400'
+        loading='eager'
         fetchPriority='high'
         className='w-full max-w-xs sm:max-w-sm rounded-lg shadow-md object-cover'
       />

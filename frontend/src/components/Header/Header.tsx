@@ -15,7 +15,11 @@ export const Header = () => {
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
         <div className='flex items-center gap-3'>
           <a href='/'>
-            <img src='/logo.jpg' alt='Logo' className='h-10' />
+            <img
+              src='/logo.svg'
+              alt='Logo'
+              className='h-10 aspect-[1.22] rounded'
+            />
           </a>
           {user && (
             <span

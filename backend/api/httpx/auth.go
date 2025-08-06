@@ -89,7 +89,7 @@ func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
 			OperationID:   "me",
 			Method:        http.MethodGet,
 			Path:          "/api/me",
-			Summary:       "Get current user",
+			Summary:       "check current user session",
 			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
 			DefaultStatus: http.StatusOK,
 		},
