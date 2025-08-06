@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"rifa/backend/api/httpx"
@@ -112,11 +114,32 @@ func spaHandler(staticFS http.FileSystem) http.HandlerFunc {
 		f, err := staticFS.Open(path)
 		if err == nil {
 			f.Close()
+			setCacheHeaders(w, path)
 			fileServer.ServeHTTP(w, r)
 			return
 		}
 		// fallback to index.html
 		r.URL.Path = "/"
 		fileServer.ServeHTTP(w, r)
+	}
+}
+
+func setCacheHeaders(w http.ResponseWriter, path string) {
+	if strings.HasPrefix(path, "assets/") {
+		// 1 year for versioned files
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	} else if isCacheableAsset(path) {
+		// 1 day for not versioned files (images, etc)
+		w.Header().Set("Cache-Control", "public, max-age=86400")
+	}
+}
+
+func isCacheableAsset(path string) bool {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".js", ".css", ".jpg", ".jpeg", ".png", ".webp", ".svg", ".woff", ".woff2", ".ttf":
+		return true
+	default:
+		return false
 	}
 }
