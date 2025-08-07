@@ -1,9 +1,10 @@
 import { LoginRegisterModal } from '@src/components/AuthModal/Modal';
 import { useAuth } from '@src/context/useAuth';
 import { useModal } from '@src/context/useModal';
+import logo from '@src/assets/logo.svg';
 
 export const Header = () => {
-  const { user, logout } = useAuth();
+  const { user, authReady, logout } = useAuth();
   const { modalOpen, isRegister, openLoginModal, closeModal } = useModal();
 
   const login = () => {
@@ -15,13 +16,9 @@ export const Header = () => {
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
         <div className='flex items-center gap-3'>
           <a href='/'>
-            <img
-              src='/logo.svg'
-              alt='Logo'
-              className='h-10 aspect-[1.22] rounded'
-            />
+            <img src={logo} alt='Logo' className='h-10 aspect-[1.22] rounded' />
           </a>
-          {user && (
+          {authReady && user && (
             <span
               title={user.email}
               className='text-sm sm:text-base font-medium text-white truncate max-w-[120px] sm:max-w-none'
@@ -50,7 +47,7 @@ export const Header = () => {
             Whatsapp
           </a>
 
-          {user && (
+          {authReady && user && (
             <>
               {user.role === 'admin' && (
                 <a href='/dashboard' className='hover:text-orange-400'>

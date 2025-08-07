@@ -5,11 +5,10 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
-	"path/filepath"
-	"strings"
 	"time"
 
-	"rifa/backend/api/httpx"
+	"rifa/backend/api"
+	"rifa/backend/internal/core/spa"
 	"rifa/backend/pkg/db"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -83,16 +82,14 @@ func NewHttpServer(
 	router := chi.NewRouter()
 	router.Use(chimdw.Logger)
 	router.Use(httprate.LimitAll(10, 1*time.Second))
-	router.NotFound(spaHandler(front))
+	router.NotFound(spa.SpaHandler(front))
 	router.Use(chimdw.Compress(4))
 	router.Use(chimdw.Recoverer)
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
-	api := humachi.New(router, apiConfig)
-	httpx.RegisterAuthRoutes(api, opts.SecureCookies, db)
-	httpx.RegisterPurchaseRoutes(api, db)
-	httpx.RegisterTicketsRoutes(api, db)
+	humaApi := humachi.New(router, apiConfig)
+	api.RegisterHttpRoutes(humaApi, db, opts.SecureCookies)
 
 	server := &HttpServer{
 		router,
@@ -105,55 +102,4 @@ func NewHttpServer(
 	}
 
 	return server, nil
-}
-
-func spaHandler(staticFS http.FileSystem) http.HandlerFunc {
-	fileServer := http.FileServer(staticFS)
-	return func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path[1:]
-		f, err := staticFS.Open(path)
-		if err == nil {
-			f.Close()
-			setCacheHeaders(w, path)
-			setSecurityHeaders(w)
-			fileServer.ServeHTTP(w, r)
-			return
-		}
-		// fallback to index.html
-		r.URL.Path = "/"
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func setCacheHeaders(w http.ResponseWriter, path string) {
-	if strings.HasPrefix(path, "assets/") {
-		// 1 year for versioned files
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	} else if isCacheableAsset(path) {
-		// 1 day for not versioned files (images, etc)
-		w.Header().Set("Cache-Control", "public, max-age=86400")
-	}
-}
-
-func isCacheableAsset(path string) bool {
-	ext := strings.ToLower(filepath.Ext(path))
-	switch ext {
-	case ".js", ".css", ".jpg", ".jpeg", ".png", ".webp", ".svg", ".woff", ".woff2", ".ttf":
-		return true
-	default:
-		return false
-	}
-}
-
-func setSecurityHeaders(w http.ResponseWriter) {
-	w.Header().Set(
-		"Content-Security-Policy",
-		"default-src 'self'; img-src 'self' https: data:; script-src 'self'; style-src 'self' 'unsafe-inline'",
-	)
-	w.Header().Set(
-		"Strict-Transport-Security",
-		"max-age=63072000; includeSubDomains; preload",
-	)
-	w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
-	w.Header().Set("X-Frame-Options", "DENY")
 }

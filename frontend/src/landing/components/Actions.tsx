@@ -3,8 +3,13 @@ import { useModal } from '@src/context/useModal';
 import { useState } from 'react';
 import { PurchaseModal } from './PurchaseModal';
 import { TicketsModal } from './TicketsModal';
+import { MONTO_BS, MONTO_USD } from '@src/config/config';
 
-export const Actions = () => {
+interface ActionsProps {
+  prices: Prices | undefined;
+}
+
+const Actions = ({ prices }: ActionsProps) => {
   const { user } = useAuth();
   const { openLoginModal } = useModal();
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
@@ -43,6 +48,8 @@ export const Actions = () => {
         </button>
 
         <PurchaseModal
+          bs={prices && prices.montoBs ? prices.montoBs : MONTO_BS}
+          usd={prices && prices.montoUsd ? prices.montoUsd : MONTO_USD}
           isOpen={purchaseModalOpen}
           onClose={() => setPurchaseModalOpen(false)}
         />
@@ -62,3 +69,5 @@ export const Actions = () => {
     </>
   );
 };
+
+export default Actions;

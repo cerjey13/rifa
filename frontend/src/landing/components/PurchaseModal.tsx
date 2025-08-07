@@ -4,6 +4,8 @@ import { PaymentMethods } from './PaymentMethods';
 import { BuyForm } from './BuyForm';
 
 interface PurchaseModalProps {
+  bs: number;
+  usd: number;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -16,18 +18,23 @@ const steps = {
 
 type PurchaseSteps = (typeof steps)[keyof typeof steps];
 
-export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
+export const PurchaseModal = ({
+  bs,
+  usd,
+  isOpen,
+  onClose,
+}: PurchaseModalProps) => {
   const [step, setStep] = useState<PurchaseSteps>(steps.QUANTITY);
   const [quantity, setQuantity] = useState<number>(2);
-  const [montoBs, setMontoBs] = useState<string>('150');
-  const [montoUSD, setMontoUSD] = useState<string>('1');
+  const [montoBs, setMontoBs] = useState<number>(bs);
+  const [montoUSD, setMontoUSD] = useState<number>(usd);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [selectedNumbers, setSelectedNumbers] = useState<string[]>([]);
 
   const handleQuantityNext = (
     qty: number,
-    montoBs: string,
-    montoUSD: string,
+    montoBs: number,
+    montoUSD: number,
     numbers: string[],
   ) => {
     setQuantity(qty);
@@ -54,8 +61,8 @@ export const PurchaseModal = ({ isOpen, onClose }: PurchaseModalProps) => {
         {step === steps.QUANTITY && (
           <QuantitySelector
             min={2}
-            priceBS={150}
-            priceUsd={1}
+            priceBS={bs}
+            priceUsd={usd}
             onClose={handleClose}
             onNext={handleQuantityNext}
           />

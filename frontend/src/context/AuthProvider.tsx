@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   useMutation,
   useQuery,
@@ -12,25 +12,42 @@ export interface AuthContextType {
   user: User | null;
   authenticated: boolean;
   loading: boolean;
+  authReady: boolean;
   login: UseMutationResult<User, Error, { email: string; password: string }>;
   logout: UseMutationResult<void, Error, void>;
   refetchUser: () => void;
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [enableUserQuery, setEnableUserQuery] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    requestIdleCallback(() => setEnableUserQuery(true));
+  }, []);
+
   const queryClient = useQueryClient();
 
   const {
     data: user,
-    isLoading: userLoading,
+    isPending: userPending,
+    isFetching: userFetching,
     error: userError,
     refetch: refetchUser,
   } = useQuery<User, Error>({
     queryKey: ['me'],
     queryFn: fetchCurrentUser,
+    enabled: enableUserQuery,
+    gcTime: 0,
     refetchOnWindowFocus: false,
     retry: false,
   });
+
+  useEffect(() => {
+    if (!userFetching && enableUserQuery) {
+      setAuthReady(true);
+    }
+  }, [userFetching, enableUserQuery]);
 
   const loginMutation = useMutation<
     User,
@@ -52,7 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const authenticated = !!user && !userError;
   const loading =
-    userLoading || loginMutation.isPending || logoutMutation.isPending;
+    userPending ||
+    userFetching ||
+    loginMutation.isPending ||
+    logoutMutation.isPending;
 
   return (
     <AuthContext.Provider
@@ -60,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user: user || null,
         authenticated,
         loading,
+        authReady,
         login: loginMutation,
         logout: logoutMutation,
         refetchUser,
