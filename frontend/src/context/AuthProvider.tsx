@@ -23,7 +23,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    requestIdleCallback(() => setEnableUserQuery(true));
+    const timeout = setTimeout(() => {
+      setEnableUserQuery(true);
+    }, 300);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   const queryClient = useQueryClient();

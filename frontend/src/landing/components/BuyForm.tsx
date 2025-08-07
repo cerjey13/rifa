@@ -102,7 +102,7 @@ export const BuyForm = ({
       {!success && (
         <form
           onSubmit={handleSubmit}
-          className='flex flex-col gap-6 text-white'
+          className='flex flex-col gap-6 text-white  max-h-[90vh] overflow-y-auto py-4'
         >
           <div className='flex items-center justify-between'>
             <h2 className='font-bold uppercase text-lg'>Pagar</h2>

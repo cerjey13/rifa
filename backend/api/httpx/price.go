@@ -7,6 +7,7 @@ import (
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
+	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/price"
 	database "rifa/backend/pkg/db"
 
@@ -43,6 +44,34 @@ func RegisterPriceRoutes(api huma.API, db database.DB) {
 					USD: prices.UsdAmount,
 				},
 			}, nil
+		},
+	)
+
+	huma.Register(
+		api,
+		huma.Operation{
+			OperationID: "updatePrices",
+			Method:      http.MethodPatch,
+			Path:        "/api/prices",
+			Summary:     "update the prices values",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireAdminSession(api),
+			},
+			DefaultStatus: http.StatusNoContent,
+		},
+		func(
+			ctx context.Context,
+			input *dto.PriceUpdateInput,
+		) (*struct{}, error) {
+			err := srv.Update(ctx, input.Body.BS, input.Body.USD)
+			if err != nil {
+				log.Println(err)
+				return nil, huma.Error500InternalServerError(
+					"Failed to get prices",
+				)
+			}
+
+			return nil, nil
 		},
 	)
 }

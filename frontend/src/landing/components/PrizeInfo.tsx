@@ -1,5 +1,4 @@
 import premio512 from '@src/assets/premio-500.webp';
-import premio700 from '@src/assets/premio-700.webp';
 
 export const PrizeInfo = () => (
   <section className='text-center p-4 my-4 space-y-3 max-w-lg mx-auto text-brandLightGray'>
@@ -9,12 +8,12 @@ export const PrizeInfo = () => (
     <p className='text-lg sm:text-xl text-white font-semibold'>
       Participa y gana!
     </p>
-    <div className='flex justify-center'>
+    <div className='flex justify-center mx-auto max-w-[512px]'>
       <picture>
         <source
+          srcSet={premio512}
+          media='(min-width: 641px)'
           type='image/webp'
-          srcSet={`${premio512} 512w, ${premio700} 700w`}
-          sizes='(max-width: 640px) 512px, 700px'
         />
         <img
           src={premio512}

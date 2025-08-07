@@ -144,7 +144,7 @@ export const QuantitySelector = ({
   };
 
   return (
-    <div className='flex flex-col gap-6'>
+    <div className='flex flex-col gap-6 max-h-[90vh] overflow-y-auto py-4'>
       <h2 className='font-bold uppercase text-lg'>
         Elige la cantidad de números a comprar
       </h2>
