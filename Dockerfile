@@ -10,6 +10,11 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install
 
 COPY frontend/ .
+
+# env vars for fallback
+ENV VITE_MONTO_BS=150
+ENV VITE_MONTO_USD=1
+
 RUN pnpm run build
 
 # Stage 2: Build backend with Go 1.24.x

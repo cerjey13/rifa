@@ -34,7 +34,7 @@ export const PaymentMethods = ({
     onClose();
   };
   return (
-    <div className='flex flex-col gap-6'>
+    <div className='flex flex-col gap-6  max-h-[90vh] overflow-y-auto py-4'>
       <div className='flex items-center justify-between'>
         <h2 className='font-bold uppercase text-lg'>Métodos de pago</h2>
 

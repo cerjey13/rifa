@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FaShoppingCart, FaHome } from 'react-icons/fa';
+import { FaShoppingCart, FaHome, FaPiggyBank } from 'react-icons/fa';
 import { AiOutlineLogout, AiOutlineClose } from 'react-icons/ai';
 import { useAuth } from '@src/context/useAuth';
 
@@ -21,11 +21,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
       tabIndex: 1,
     },
     {
+      label: 'Precios',
+      to: '/dashboard/precios',
+      icon: <FaPiggyBank />,
+      tabIndex: 2,
+    },
+    {
       label: 'Pagina Principal',
       to: '/',
       icon: <FaHome />,
       isActive: location.pathname === '/',
-      tabIndex: 2,
+      tabIndex: 3,
     },
   ];
 
