@@ -15,8 +15,8 @@ interface QuantitySelectorProps {
   onClose: () => void;
   onNext: (
     quantity: number,
-    montoBs: string,
-    montoUSD: string,
+    montoBs: number,
+    montoUSD: number,
     numbers: string[],
   ) => void;
 }
@@ -25,8 +25,8 @@ function calculateMonto(
   quantity: number,
   priceBS: number,
   conversionRate: number,
-): string {
-  return (quantity * priceBS * conversionRate).toFixed(2);
+): number {
+  return quantity * priceBS * conversionRate;
 }
 
 export const QuantitySelector = ({
@@ -38,10 +38,10 @@ export const QuantitySelector = ({
   onNext,
 }: QuantitySelectorProps) => {
   const [quantity, setQuantity] = useState<number>(min);
-  const [montoUSD, setMontoUSD] = useState<string>(
+  const [montoUSD, setMontoUSD] = useState<number>(
     calculateMonto(min, priceUsd, 1),
   );
-  const [montoBs, setMontoBs] = useState<string>(
+  const [montoBs, setMontoBs] = useState<number>(
     calculateMonto(min, priceBS, 1),
   );
   const [numbers, setNumbers] = useState<string[]>(Array(min).fill(''));

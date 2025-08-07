@@ -5,8 +5,8 @@ import { CopyableText } from '@src/components/Clipboard/Copy';
 
 interface BuyFormProps {
   quantity: number;
-  montoBs: string;
-  montoUSD: string;
+  montoBs: number;
+  montoUSD: number;
   paymentMethod: string;
   selectedNumbers: string[];
   onBack: () => void;
@@ -57,8 +57,8 @@ export const BuyForm = ({
     try {
       await submitPurchase({
         quantity,
-        montoBs,
-        montoUSD,
+        montoBs: montoBs.toFixed(2),
+        montoUSD: montoUSD.toFixed(2),
         paymentMethod,
         transactionDigits,
         selectedNumbers,

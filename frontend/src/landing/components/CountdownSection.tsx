@@ -6,7 +6,7 @@ type CountdownSectionProps = {
   error: boolean;
 };
 
-export const CountdownSection = ({
+const CountdownSection = ({
   percentage,
   loading,
   error,
@@ -30,3 +30,5 @@ export const CountdownSection = ({
     </div>
   );
 };
+
+export default CountdownSection;

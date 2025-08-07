@@ -27,3 +27,8 @@ type MostPurchases = {
   user: Omit<User, 'role'>;
   quantity: number;
 };
+
+interface Prices {
+  montoBs: number;
+  montoUsd: number;
+}
