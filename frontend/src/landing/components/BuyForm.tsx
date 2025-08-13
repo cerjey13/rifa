@@ -34,8 +34,16 @@ export const BuyForm = ({
   const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setPaymentScreenshot(e.target.files[0]);
+    const file =
+      e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
+    if (file) {
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        alert('El archivo no debe superar los 5 MB.');
+        e.target.value = ''; // reset input
+        return;
+      }
+      setPaymentScreenshot(file);
     }
   };
 
@@ -195,8 +203,8 @@ export const BuyForm = ({
 
           <hr className='border-gray-700' />
 
-          <label className='flex flex-col gap-1'>
-            Ultimos 6 Digitos (Transaccion)
+          <label className='flex flex-col gap-1 overflow-visible'>
+            Últimos 6 Dígitos (Transacción)
             <input
               type='text'
               maxLength={6}
@@ -206,7 +214,8 @@ export const BuyForm = ({
               onChange={(e) =>
                 setTransactionDigits(e.target.value.replace(/\D/g, ''))
               }
-              className='bg-gray-700 rounded p-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500'
+              className='bg-gray-700 border border-gray-500 rounded p-2 text-white
+               focus:outline-none focus:border-yellow-500'
               placeholder='123456'
               disabled={loading}
             />

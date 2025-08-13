@@ -50,7 +50,7 @@ func (s *service) Create(
 	ctx context.Context,
 	req *form.CreatePurchaseRequest,
 ) error {
-	compressScreenshot, err := utils.CompressToJPG(req.PaymentScreenshot)
+	compressedScreenshot, err := utils.CompressToJPG(req.PaymentScreenshot)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (s *service) Create(
 		MontoUSD:          req.MontoUSD,
 		PaymentMethod:     req.PaymentMethod,
 		TransactionDigits: req.TransactionDigits,
-		PaymentScreenshot: compressScreenshot,
+		PaymentScreenshot: compressedScreenshot,
 		Status:            types.StatusPending,
 		CreatedAt:         time.Now(),
 	}
