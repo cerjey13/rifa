@@ -70,8 +70,8 @@ export const PaymentMethods = ({
                 ? setSelectedMethod(null)
                 : setSelectedMethod(id)
             }
-            className={`flex flex-col items-center p-4 rounded bg-gray-800 hover:bg-gray-700 transition ${
-              selectedMethod === id ? 'ring-2 ring-yellow-500' : ''
+            className={`flex flex-col items-center mx-2 p-4 rounded bg-gray-800 hover:bg-gray-700 transition ${
+              selectedMethod === id ? 'ring-1 ring-yellow-500' : ''
             }`}
           >
             <span className='text-4xl'>{icon}</span>
