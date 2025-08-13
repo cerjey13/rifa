@@ -80,7 +80,7 @@ func RequireAdminSession(
 				ctx,
 				http.StatusUnauthorized,
 				"Invalid access",
-				errors.New("User Unauthorized"),
+				errors.New("user unauthorized"),
 			)
 			return
 		}
