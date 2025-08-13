@@ -143,8 +143,11 @@ export const ResumenCompras: React.FC = () => {
               No hay resultados para mostrar.
             </div>
           )}
-          {purchases.map((p) => (
-            <div key={p.user.id} className='bg-gray-900 rounded-lg shadow p-4'>
+          {purchases.map((p, i) => (
+            <div
+              key={`${p.user.id}${i}`}
+              className='bg-gray-900 rounded-lg shadow p-4'
+            >
               <div className='flex flex-wrap items-center gap-2 mb-2'>
                 <span className='font-bold'>Usuario:</span>{' '}
                 <button
@@ -287,8 +290,8 @@ export const ResumenCompras: React.FC = () => {
                 </td>
               </tr>
             ) : (
-              purchases.map((p) => (
-                <tr key={p.user.id}>
+              purchases.map((p, i) => (
+                <tr key={`${p.user.id}${i}`}>
                   <td className='px-2 md:px-4 py-2 text-center'>
                     <button
                       className='text-white hover:text-gray-400 underline font-medium transition-colors duration-200'

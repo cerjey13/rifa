@@ -203,7 +203,7 @@ export const BuyForm = ({
 
           <hr className='border-gray-700' />
 
-          <label className='flex flex-col gap-1 overflow-visible'>
+          <label className='flex flex-col gap-1'>
             Últimos 6 Dígitos (Transacción)
             <input
               type='text'
@@ -214,8 +214,7 @@ export const BuyForm = ({
               onChange={(e) =>
                 setTransactionDigits(e.target.value.replace(/\D/g, ''))
               }
-              className='bg-gray-700 border border-gray-500 rounded p-2 text-white
-               focus:outline-none focus:border-yellow-500'
+              className='bg-gray-700 rounded mx-0.5 p-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500'
               placeholder='123456'
               disabled={loading}
             />
