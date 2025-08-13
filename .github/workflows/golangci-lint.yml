@@ -35,7 +35,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@9
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
