@@ -1,6 +1,7 @@
 package spa
 
 import (
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -12,7 +13,9 @@ func SpaHandler(staticFS http.FileSystem) http.HandlerFunc {
 		path := r.URL.Path[1:]
 		f, err := staticFS.Open(path)
 		if err == nil {
-			f.Close()
+			if err := f.Close(); err != nil {
+				log.Printf("failed to close body: %v", err)
+			}
 			setCacheHeaders(w, path)
 			setSecurityHeaders(w)
 			fileServer.ServeHTTP(w, r)

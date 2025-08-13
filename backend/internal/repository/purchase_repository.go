@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 
 	"rifa/backend/api/httpx/dto"
 	"rifa/backend/api/httpx/form"
@@ -156,9 +157,13 @@ func (r *purchaseRepo) UpdateStatus(
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback(ctx)
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				log.Printf("transaction rollback failed: %v", rbErr)
+			}
 		} else {
-			tx.Commit(ctx)
+			if cmErr := tx.Commit(ctx); cmErr != nil {
+				log.Printf("transaction commit failed: %v", cmErr)
+			}
 		}
 	}()
 
