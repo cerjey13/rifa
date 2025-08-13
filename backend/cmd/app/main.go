@@ -34,14 +34,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to start the db: %v", err)
 	}
+
 	dbAdapter := database.NewPgxpoolAdapter(db)
 	front := http.FS(dist)
-	server, err := core.NewHttpServer(dbAdapter, front, core.HttpServerOptions{
-		Logger:        logger,
-		Host:          cfg.Host,
-		Port:          cfg.Port,
-		SecureCookies: cfg.UseSecureCookie,
-	})
+	server, err := core.NewHttpServer(
+		dbAdapter,
+		front,
+		core.HttpServerOptions{
+			Logger:        logger,
+			Host:          cfg.Host,
+			Port:          cfg.Port,
+			SecureCookies: cfg.UseSecureCookie,
+		},
+	)
 	if err != nil {
 		log.Fatal("failed to config the server")
 	}

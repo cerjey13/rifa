@@ -1,0 +1,53 @@
+name: golangci-lint
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/golangci-lint.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go (from backend/go.mod)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          check-latest: true
+
+      - name: Cache Go build & mod for backend module
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Run golangci-lint on backend/
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          working-directory: backend
+          args: --timeout=5m
+          # only-new-issues: true  # uncomment if you want PR-only issues
