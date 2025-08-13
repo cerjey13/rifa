@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"log"
 	"path/filepath"
 	"rifa/backend/pkg/config"
 	"sync"
@@ -66,6 +67,7 @@ func runMigrations(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
+
 	m, err := migrate.New(
 		fmt.Sprintf("file://%s", absMigrationsPath),
 		cfg.DatabaseUrl,
@@ -73,7 +75,17 @@ func runMigrations(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	defer m.Close()
+
+	defer func() {
+		srcErr, dbErr := m.Close()
+		if srcErr != nil {
+			log.Printf("migration source close error: %v", srcErr)
+		}
+		if dbErr != nil {
+			log.Printf("migration db close error: %v", dbErr)
+		}
+	}()
+
 	err = m.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return err
