@@ -1,6 +1,14 @@
 name: Build and Test
 
 on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/build-and-test.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/build-and-test.yml'
   workflow_call:
 
 jobs:

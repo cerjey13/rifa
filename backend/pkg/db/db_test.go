@@ -151,7 +151,7 @@ func TestConnect_Singleton_Concurrency(t *testing.T) {
 	errs := make(chan error, N)
 	dbs := make(chan DB, N)
 
-	for _ = range N {
+	for range N {
 		go func() {
 			defer wg.Done()
 			d, err := Connect(ctx, drv, cfg)

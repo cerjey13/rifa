@@ -17,16 +17,46 @@ func TestNewConfig_Defaults(t *testing.T) {
 	t.Cleanup(reset)
 
 	// Ensure env is clean
-	os.Unsetenv("PORT")
-	os.Unsetenv("HOST")
-	os.Unsetenv("APP_ENV")
-	os.Unsetenv("COOKIE_SECURE")
-	os.Unsetenv("JWT_SECRET")
-	os.Unsetenv("DATABASE_URL")
-	os.Unsetenv("EMAIL_MAILEROO_API_KEY")
-	os.Unsetenv("EMAIL_ACCOUNT")
-	os.Unsetenv("EMAIL_SENDER_ACCOUNT")
-	os.Unsetenv("EMAIL_URL")
+	err := os.Unsetenv("PORT")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("HOST")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("APP_ENV")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("COOKIE_SECURE")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("JWT_SECRET")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("DATABASE_URL")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("EMAIL_MAILEROO_API_KEY")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("EMAIL_ACCOUNT")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("EMAIL_SENDER_ACCOUNT")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
+	err = os.Unsetenv("EMAIL_URL")
+	if err != nil {
+		t.Fatal("failed to unset env variable")
+	}
 
 	c, err := NewConfig()
 	if err != nil {
