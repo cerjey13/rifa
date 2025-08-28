@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"rifa/backend/pkg/config"
 	"sync"
+
+	"rifa/backend/pkg/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB interface {
@@ -19,6 +19,7 @@ type DB interface {
 	QueryRow(ctx context.Context, query string, args ...any) Row
 	ExecContext(ctx context.Context, query string, args ...any) error
 	BeginTx(ctx context.Context) (Tx, error)
+	Close()
 }
 
 type Tx interface {
@@ -40,26 +41,33 @@ type Rows interface {
 	Err() error
 }
 
+type Driver interface {
+	Open(ctx context.Context, dsn string) (DB, error)
+}
+
 var (
-	pool *pgxpool.Pool
-	once sync.Once
+	db      DB
+	initErr error
+	once    sync.Once
 )
 
-func Connect(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
-	var err error
+func Connect(ctx context.Context, drv Driver, cfg *config.Config) (DB, error) {
 	once.Do(func() {
-		pool, err = pgxpool.New(ctx, cfg.DatabaseUrl)
+		var err error
+		db, err = drv.Open(ctx, cfg.DatabaseUrl)
 		if err != nil {
+			initErr = err
 			return
 		}
-		err = pool.Ping(ctx)
-		if err != nil {
-			return
-		}
+
 		err = runMigrations(cfg)
+		if err != nil {
+			initErr = err
+			return
+		}
 	})
 
-	return pool, err
+	return db, initErr
 }
 
 func runMigrations(cfg *config.Config) error {

@@ -7,105 +7,68 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type pgxpoolAdapter struct {
-	pool *pgxpool.Pool
-}
+type postgresDriver struct{}
 
-type pgxRowAdapter struct {
-	row pgx.Row
-}
+func NewPostgresDriver() Driver { return &postgresDriver{} }
 
-type pgxRowsAdapter struct {
-	rows pgx.Rows
-}
-
-type pgxTxAdapter struct {
-	tx pgx.Tx
-}
-
-func (r *pgxRowAdapter) Scan(dest ...any) error {
-	return r.row.Scan(dest...)
-}
-
-func NewPgxpoolAdapter(pool *pgxpool.Pool) DB {
-	return &pgxpoolAdapter{pool: pool}
-}
-
-func (d *pgxpoolAdapter) QueryRow(
-	ctx context.Context,
-	query string,
-	args ...any,
-) Row {
-	return &pgxRowAdapter{row: d.pool.QueryRow(ctx, query, args...)}
-}
-
-func (d *pgxpoolAdapter) Query(
-	ctx context.Context,
-	query string,
-	args ...any,
-) (Rows, error) {
-	rows, err := d.pool.Query(ctx, query, args...)
+func (postgresDriver) Open(ctx context.Context, dsn string) (DB, error) {
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
-	return &pgxRowsAdapter{rows: rows}, nil
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
+	// Wrap pgxpool with your adapter so callers use your DB interface
+	return NewPGX(pool), nil
 }
 
-func (d *pgxpoolAdapter) ExecContext(
-	ctx context.Context,
-	query string,
-	args ...any,
-) error {
-	_, err := d.pool.Exec(ctx, query, args...)
+type PGXPool struct {
+	Pool *pgxpool.Pool
+}
+
+func NewPGX(pool *pgxpool.Pool) *PGXPool { return &PGXPool{Pool: pool} }
+
+func (p *PGXPool) Query(ctx context.Context, q string, args ...any) (Rows, error) {
+	return p.Pool.Query(ctx, q, args...)
+}
+
+func (p *PGXPool) QueryRow(ctx context.Context, q string, args ...any) Row {
+	return p.Pool.QueryRow(ctx, q, args...)
+}
+
+func (p *PGXPool) ExecContext(ctx context.Context, q string, args ...any) error {
+	_, err := p.Pool.Exec(ctx, q, args...)
 	return err
 }
 
-func (d *pgxpoolAdapter) BeginTx(ctx context.Context) (Tx, error) {
-	tx, err := d.pool.Begin(ctx)
+func (p *PGXPool) BeginTx(ctx context.Context) (Tx, error) {
+	tx, err := p.Pool.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &pgxTxAdapter{tx: tx}, nil
+	return &pgxTx{tx: tx}, nil
 }
 
-func (r *pgxRowsAdapter) Next() bool             { return r.rows.Next() }
-func (r *pgxRowsAdapter) Scan(dest ...any) error { return r.rows.Scan(dest...) }
-func (r *pgxRowsAdapter) Close()                 { r.rows.Close() }
-func (r *pgxRowsAdapter) Err() error             { return r.rows.Err() }
-
-func (t *pgxTxAdapter) Query(
-	ctx context.Context,
-	query string,
-	args ...any,
-) (Rows, error) {
-	rows, err := t.tx.Query(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return &pgxRowsAdapter{rows: rows}, nil
+func (p *PGXPool) Close() {
+	p.Pool.Close()
 }
 
-func (t *pgxTxAdapter) QueryRow(
-	ctx context.Context,
-	query string,
-	args ...any,
-) Row {
-	return &pgxRowAdapter{row: t.tx.QueryRow(ctx, query, args...)}
+type pgxTx struct{ tx pgx.Tx }
+
+func (t *pgxTx) Query(ctx context.Context, q string, args ...any) (Rows, error) {
+	return t.tx.Query(ctx, q, args...)
 }
 
-func (t *pgxTxAdapter) ExecContext(
-	ctx context.Context,
-	query string,
-	args ...any,
-) error {
-	_, err := t.tx.Exec(ctx, query, args...)
+func (t *pgxTx) QueryRow(ctx context.Context, q string, args ...any) Row {
+	return t.tx.QueryRow(ctx, q, args...)
+}
+
+func (t *pgxTx) ExecContext(ctx context.Context, q string, args ...any) error {
+	_, err := t.tx.Exec(ctx, q, args...)
 	return err
 }
 
-func (t *pgxTxAdapter) Commit(ctx context.Context) error {
-	return t.tx.Commit(ctx)
-}
-
-func (t *pgxTxAdapter) Rollback(ctx context.Context) error {
-	return t.tx.Rollback(ctx)
-}
+func (t *pgxTx) Commit(ctx context.Context) error   { return t.tx.Commit(ctx) }
+func (t *pgxTx) Rollback(ctx context.Context) error { return t.tx.Rollback(ctx) }

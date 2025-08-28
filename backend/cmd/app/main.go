@@ -30,12 +30,13 @@ func main() {
 	}
 
 	logger := logger.New(cfg.Env)
-	db, err := database.Connect(context.Background(), cfg)
+	driver := database.NewPostgresDriver()
+	dbAdapter, err := database.Connect(context.Background(), driver, cfg)
 	if err != nil {
 		log.Fatalf("failed to start the db: %v", err)
 	}
+	defer dbAdapter.Close()
 
-	dbAdapter := database.NewPgxpoolAdapter(db)
 	front := http.FS(dist)
 	server, err := core.NewHttpServer(
 		dbAdapter,
