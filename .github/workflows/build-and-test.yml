@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Stub dist for embed
+        run: mkdir -p backend/cmd/app/dist
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
