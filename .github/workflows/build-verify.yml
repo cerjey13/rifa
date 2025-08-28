@@ -40,9 +40,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend into backend/cmd/app/dist
-        run: pnpm run build
+        run: pnpm build-back
 
       # Your "build" script already does: `tsc -b && vite build`
       # So this fails the PR on type or build errors.
       - name: Type-check + production build
-        run: npm run build
+        run: pnpm build
