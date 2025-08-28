@@ -17,7 +17,9 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Stub dist for embed
-        run: mkdir -p backend/cmd/app/dist
+        run: |
+          mkdir -p backend/cmd/app/dist
+          echo '<!doctype html><title>stub</title>' > backend/cmd/app/dist/index.html
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
