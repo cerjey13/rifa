@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { submitPurchase } from '@src/api/purchase';
 import { CopyableText } from '@src/components/Clipboard/Copy';
+import { toast } from 'sonner';
 
 interface BuyFormProps {
   quantity: number;
@@ -37,9 +38,9 @@ export const BuyForm = ({
     const file =
       e.target.files && e.target.files.length > 0 ? e.target.files[0] : null;
     if (file) {
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      const maxSize = 3 * 1024 * 1024; // 3MB in bytes
       if (file.size > maxSize) {
-        alert('El archivo no debe superar los 5 MB.');
+        toast.error('El archivo no debe superar los 3 MB.', { duration: 5000 });
         e.target.value = ''; // reset input
         return;
       }

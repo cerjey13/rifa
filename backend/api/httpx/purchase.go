@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"context"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -19,6 +20,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+const maxFileBytes int64 = 1 * 1024 * 1024
 
 func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	cfg, err := config.NewConfig()
@@ -48,18 +51,30 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			ctx context.Context,
 			input *dto.PurchaseInput,
 		) (*dto.PurchaseOutput, error) {
-			formData := input.RawBody.Data()
-			screenshot, err := io.ReadAll(formData.ScreenShot)
-			if err != nil {
-				log.Println(err)
-				return nil, huma.Error500InternalServerError(
-					"Could not read uploaded file",
-				)
-			}
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
 				log.Println("No session claims")
 				return nil, huma.Error401Unauthorized("No session claims")
+			}
+
+			formData := input.RawBody.Data()
+			if formData.ScreenShot.Size > maxFileBytes {
+				log.Println("purchase image too large ", formData.ScreenShot.Size)
+				return nil, huma.NewError(
+					http.StatusRequestEntityTooLarge,
+					http.StatusText(http.StatusRequestEntityTooLarge),
+					errors.New("image exceeds 3MB limit"),
+				)
+			}
+
+			// Defensive read guard in case Size is missing/wrong
+			r := io.LimitReader(formData.ScreenShot, maxFileBytes+1)
+			screenshot, err := io.ReadAll(r)
+			if err != nil {
+				log.Println(err)
+				return nil, huma.Error400BadRequest(
+					"Could not read uploaded file",
+				)
 			}
 
 			purchase := &form.CreatePurchaseRequest{
