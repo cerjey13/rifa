@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaShoppingCart, FaHome, FaPiggyBank } from 'react-icons/fa';
 import { AiOutlineLogout, AiOutlineClose } from 'react-icons/ai';
@@ -8,22 +9,31 @@ type SidebarProps = {
   setOpen: (o: boolean) => void;
 };
 
+type Items = {
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  tabIndex: number;
+};
+
 export const Sidebar: React.FC<SidebarProps> = ({ open, setOpen }) => {
   const { logout } = useAuth();
   const location = useLocation();
 
-  const menuItems = [
+  const menuItems: Items[] = [
     {
       label: 'Compras',
       to: '/dashboard',
       icon: <FaShoppingCart />,
-      isActive: location.pathname.startsWith('/dashboard'),
+      isActive: location.pathname === '/dashboard',
       tabIndex: 1,
     },
     {
       label: 'Precios',
       to: '/dashboard/precios',
       icon: <FaPiggyBank />,
+      isActive: location.pathname === '/dashboard/precios',
       tabIndex: 2,
     },
     {

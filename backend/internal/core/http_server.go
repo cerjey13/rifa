@@ -81,6 +81,9 @@ func NewHttpServer(
 
 	router := chi.NewRouter()
 	router.Use(chimdw.Logger)
+	router.Use(chimdw.RequestID)
+	router.Use(chimdw.RealIP)
+	router.Use(chimdw.Timeout(15 * time.Second))
 	router.Use(httprate.LimitAll(10, 1*time.Second))
 	router.NotFound(spa.SpaHandler(front))
 	router.Use(chimdw.Compress(4))
