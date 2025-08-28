@@ -50,7 +50,10 @@ func CompressToJPG(screenshot []byte) ([]byte, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("unable to compress image under %d bytes", _MaxScreenshotBytes)
+	return nil, fmt.Errorf(
+		"unable to compress image under %d bytes",
+		_MaxScreenshotBytes,
+	)
 }
 
 func tryQualities(img image.Image) ([]byte, bool) {
