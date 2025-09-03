@@ -1,6 +1,6 @@
 import { ProgressBar } from '@src/landing/components/ProgressBar';
 
-type CountdownSectionProps = {
+export type CountdownSectionProps = {
   percentage: number;
   loading: boolean;
   error: boolean;

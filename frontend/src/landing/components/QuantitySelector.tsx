@@ -55,7 +55,7 @@ export const QuantitySelector = ({
     if (
       num === '' ||
       (/^\d{1,4}$/.test(num) &&
-        Number(num) >= TICKET_MIN_VALUE &&
+        Number(num) > TICKET_MIN_VALUE &&
         Number(num) <= TICKET_MAX_VALUE)
     ) {
       setNumbers((prev) =>
@@ -106,8 +106,8 @@ export const QuantitySelector = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = Number(e.target.value);
     if (isNaN(val)) val = min;
-    val = Math.min(Math.max(val, min), max);
-    setQuantity(val);
+    const finalVal = Math.min(Math.max(val, min), max);
+    setQuantity(finalVal);
   };
 
   const allValid =
@@ -163,6 +163,7 @@ export const QuantitySelector = ({
 
       <div className='flex items-center justify-center gap-4'>
         <button
+          role='button'
           onClick={decrement}
           disabled={quantity <= min || submitting}
           className='bg-gray-800 rounded px-4 py-2 text-2xl disabled:opacity-50 disabled:cursor-not-allowed'
@@ -172,6 +173,7 @@ export const QuantitySelector = ({
         </button>
 
         <input
+          role='spinbutton'
           type='number'
           min={min}
           max={max}
@@ -183,6 +185,7 @@ export const QuantitySelector = ({
         />
 
         <button
+          role='button'
           onClick={increment}
           disabled={quantity >= max || submitting}
           className='bg-gray-800 rounded px-4 py-2 text-2xl disabled:opacity-50 disabled:cursor-not-allowed'
@@ -235,6 +238,7 @@ export const QuantitySelector = ({
           Cancelar
         </button>
         <button
+          name='Siguiente'
           onClick={handleNext}
           className='bg-yellow-500 py-2 px-6 rounded hover:bg-yellow-600 text-black font-bold transition'
           disabled={!allValid || submitting}
