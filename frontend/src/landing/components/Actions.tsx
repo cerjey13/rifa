@@ -5,7 +5,7 @@ import { PurchaseModal } from './PurchaseModal';
 import { TicketsModal } from './TicketsModal';
 import { MONTO_BS, MONTO_USD } from '@src/config/config';
 
-interface ActionsProps {
+export interface ActionsProps {
   prices: Prices | undefined;
 }
 

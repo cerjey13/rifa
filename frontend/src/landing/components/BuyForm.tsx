@@ -181,17 +181,22 @@ export const BuyForm = ({
 
           <div className='space-y-1'>
             <p>
-              <span className='font-semibold'>Cantidad de tickets:</span>{' '}
-              {quantity}
+              <span aria-label='cantidad' className='font-semibold'>
+                Cantidad de tickets:{' ' + quantity}
+              </span>
             </p>
             {paymentMethod === paymentMethods.pagoMovil && (
               <p>
-                <span className='font-semibold'>Monto BS:</span> {montoBs}
+                <span aria-label='bs' className='font-semibold'>
+                  Monto BS:{' ' + montoBs}
+                </span>
               </p>
             )}
             {paymentMethod === paymentMethods.zelle && (
               <p>
-                <span className='font-semibold'>Monto ($):</span> {montoUSD}
+                <span aria-label='usd' className='font-semibold'>
+                  Monto ($):{' ' + montoUSD}
+                </span>
               </p>
             )}
             {selectedNumbers.filter(Boolean).length > 0 && (
