@@ -9,12 +9,13 @@ import (
 	"rifa/backend/api/httpx/form"
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/price"
+	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 
 	"github.com/danielgtaylor/huma/v2"
 )
 
-func RegisterPriceRoutes(api huma.API, db database.DB) {
+func RegisterPriceRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 	srv := price.NewService(db)
 
 	huma.Register(
@@ -55,7 +56,7 @@ func RegisterPriceRoutes(api huma.API, db database.DB) {
 			Path:        "/api/prices",
 			Summary:     "update the prices values",
 			Middlewares: huma.Middlewares{
-				mymiddlewares.RequireAdminSession(api),
+				mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 			},
 			DefaultStatus: http.StatusNoContent,
 		},

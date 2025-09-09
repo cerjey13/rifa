@@ -23,28 +23,29 @@ import (
 
 const maxFileBytes int64 = 1 * 1024 * 1024
 
-func RegisterPurchaseRoutes(api huma.API, db database.DB) {
-	cfg, err := config.NewConfig()
-	if err != nil {
-		log.Fatal("failed to load config for purchase routes")
-	}
-
+func RegisterPurchaseRoutes(
+	api huma.API,
+	db database.DB,
+	opts config.ServiceOpts,
+) {
 	emailer := email.NewMailerooClient(
-		cfg.MailerooApiKey,
-		cfg.EmailSender,
-		cfg.EmailReciever,
-		cfg.EmailURL,
+		opts.Email.MailerooApiKey,
+		opts.Email.EmailSender,
+		opts.Email.EmailReciever,
+		opts.Email.EmailURL,
 	)
 	srv := purchase.NewService(db, emailer)
 
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID:   "purchase",
-			Method:        http.MethodPost,
-			Path:          "/api/purchases",
-			Summary:       "Submit a purchase",
-			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			OperationID: "purchase",
+			Method:      http.MethodPost,
+			Path:        "/api/purchases",
+			Summary:     "Submit a purchase",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireSession(api, opts.JwtOpts),
+			},
 			DefaultStatus: http.StatusCreated,
 		},
 		func(
@@ -111,11 +112,13 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	)
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "listPurchases",
-		Method:        http.MethodGet,
-		Path:          "/api/purchases",
-		Summary:       "List all purchases (admin only)",
-		Middlewares:   huma.Middlewares{mymiddlewares.RequireAdminSession(api)},
+		OperationID: "listPurchases",
+		Method:      http.MethodGet,
+		Path:        "/api/purchases",
+		Summary:     "List all purchases (admin only)",
+		Middlewares: huma.Middlewares{
+			mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
+		},
 		DefaultStatus: http.StatusOK,
 	}, func(
 		ctx context.Context,
@@ -134,11 +137,13 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 	})
 
 	huma.Register(api, huma.Operation{
-		OperationID:   "leaderboard",
-		Method:        http.MethodGet,
-		Path:          "/api/purchases/leaderboard",
-		Summary:       "List purchases by user with the most buyed",
-		Middlewares:   huma.Middlewares{mymiddlewares.RequireAdminSession(api)},
+		OperationID: "leaderboard",
+		Method:      http.MethodGet,
+		Path:        "/api/purchases/leaderboard",
+		Summary:     "List purchases by user with the most buyed",
+		Middlewares: huma.Middlewares{
+			mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
+		},
 		DefaultStatus: http.StatusOK,
 	}, func(
 		ctx context.Context,
@@ -165,7 +170,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			Path:        "/api/purchases",
 			Summary:     "Update a purchase status (admin only)",
 			Middlewares: huma.Middlewares{
-				mymiddlewares.RequireAdminSession(api),
+				mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 			},
 			DefaultStatus: http.StatusNoContent,
 		},
@@ -190,7 +195,7 @@ func RegisterPurchaseRoutes(api huma.API, db database.DB) {
 			Path:        "/api/purchases/search",
 			Summary:     "Search for a user data by number bought (admin only)",
 			Middlewares: huma.Middlewares{
-				mymiddlewares.RequireAdminSession(api),
+				mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 			},
 			DefaultStatus: http.StatusOK,
 		},

@@ -42,10 +42,10 @@ func main() {
 		dbAdapter,
 		front,
 		core.HttpServerOptions{
-			Logger:        logger,
-			Host:          cfg.Host,
-			Port:          cfg.Port,
-			SecureCookies: cfg.UseSecureCookie,
+			Logger:      logger,
+			Host:        cfg.Host,
+			Port:        cfg.Port,
+			ServiceOpts: cfg.Service,
 		},
 	)
 	if err != nil {

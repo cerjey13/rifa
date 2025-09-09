@@ -6,11 +6,17 @@ import (
 	"time"
 
 	"rifa/backend/internal/types"
+	"rifa/backend/pkg/config"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const testSecret = "unit-test-secret"
+func testCfg() config.JwtOpts {
+	return config.JwtOpts{
+		JwtSecret:    "unit-test-secret",
+		JwtExpiresAt: 24,
+	}
+}
 
 // -------- helpers --------
 
@@ -74,7 +80,7 @@ func TestHashPassword_And_CheckPassword(t *testing.T) {
 }
 
 func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
-	t.Setenv("JWT_SECRET", testSecret)
+	cfg := testCfg()
 
 	u := &types.User{
 		ID:    "user-123",
@@ -83,7 +89,7 @@ func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
 		Role:  types.AdminRole,
 	}
 
-	tok, err := GenerateJWT(u)
+	tok, err := GenerateJWT(u, cfg)
 	if err != nil {
 		t.Fatalf("GenerateJWT error: %v", err)
 	}
@@ -91,7 +97,7 @@ func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
 		t.Fatalf("empty token")
 	}
 
-	claims, err := ValidateJWT(tok)
+	claims, err := ValidateJWT(tok, cfg)
 	if err != nil {
 		t.Fatalf("ValidateJWT error: %v", err)
 	}
@@ -116,7 +122,7 @@ func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
 }
 
 func TestValidateJWT_Failures(t *testing.T) {
-	t.Setenv("JWT_SECRET", testSecret)
+	cfg := testCfg()
 
 	now := time.Now()
 
@@ -128,6 +134,7 @@ func TestValidateJWT_Failures(t *testing.T) {
 			"email": "e@example.com",
 			"role":  "user",
 			"exp":   exp.Unix(),
+			"iat":   now.Unix(),
 		}
 		tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		s, err := tok.SignedString([]byte(secret))
@@ -138,7 +145,7 @@ func TestValidateJWT_Failures(t *testing.T) {
 	}
 
 	validWrongSig := makeSigned("other-secret", now.Add(1*time.Hour))
-	expired := makeSigned(testSecret, now.Add(-1*time.Hour))
+	expired := makeSigned(cfg.JwtSecret, now.Add(-1*time.Hour))
 
 	tests := []struct {
 		name  string
@@ -150,9 +157,8 @@ func TestValidateJWT_Failures(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := ValidateJWT(tt.token); err == nil {
+			if _, err := ValidateJWT(tt.token, cfg); err == nil {
 				t.Fatalf("expected validation failure for case %q", tt.name)
 			}
 		})

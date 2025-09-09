@@ -26,30 +26,24 @@ func CheckPassword(password, hash string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
 }
 
-func GenerateJWT(user *types.User) (string, error) {
-	cfg, err := config.NewConfig()
-	if err != nil {
-		return "", err
-	}
-
-	var jwtKey = []byte(cfg.JwtSecret)
+func GenerateJWT(user *types.User, cfg config.JwtOpts) (string, error) {
+	now := time.Now()
+	jwtKey := []byte(cfg.JwtSecret)
 	claims := jwt.MapClaims{
 		"id":    user.ID,
 		"name":  user.Name,
 		"email": user.Email,
 		"role":  user.Role,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+		"exp": now.Add(
+			time.Duration(cfg.JwtExpiresAt) * time.Hour,
+		).Unix(),
+		"iat": now.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtKey)
 }
 
-func ValidateJWT(tokenStr string) (jwt.MapClaims, error) {
-	cfg, err := config.NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
+func ValidateJWT(tokenStr string, cfg config.JwtOpts) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		return []byte(cfg.JwtSecret), nil
 	})

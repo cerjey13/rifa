@@ -10,6 +10,7 @@ import (
 	"rifa/backend/api/httpx/form"
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	ticket "rifa/backend/internal/core/tickets"
+	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/utils"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RegisterTicketsRoutes(api huma.API, db database.DB) {
+func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 	srv := ticket.NewService(db)
 
 	huma.Register(
@@ -50,11 +51,13 @@ func RegisterTicketsRoutes(api huma.API, db database.DB) {
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID:   "checkTickets",
-			Method:        http.MethodGet,
-			Path:          "/api/tickets",
-			Summary:       "List if tickets are available",
-			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			OperationID: "checkTickets",
+			Method:      http.MethodGet,
+			Path:        "/api/tickets",
+			Summary:     "List if tickets are available",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireSession(api, opts.JwtOpts),
+			},
 			DefaultStatus: http.StatusOK,
 		},
 		func(
@@ -92,11 +95,13 @@ func RegisterTicketsRoutes(api huma.API, db database.DB) {
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID:   "list user purchases",
-			Method:        http.MethodGet,
-			Path:          "/api/tickets/users",
-			Summary:       "Get purchases for a user",
-			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			OperationID: "list user purchases",
+			Method:      http.MethodGet,
+			Path:        "/api/tickets/users",
+			Summary:     "Get purchases for a user",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireSession(api, opts.JwtOpts),
+			},
 			DefaultStatus: http.StatusOK,
 		},
 		func(

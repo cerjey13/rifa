@@ -72,23 +72,23 @@ func TestNewConfig_Defaults(t *testing.T) {
 	if c.Env != "development" {
 		t.Errorf("Env = %q, want %q", c.Env, "development")
 	}
-	if c.UseSecureCookie != false {
-		t.Errorf("UseSecureCookie = %v, want %v", c.UseSecureCookie, false)
+	if c.Service.UseSecureCookie != false {
+		t.Errorf("UseSecureCookie = %v, want %v", c.Service.UseSecureCookie, false)
 	}
-	if c.EmailURL != "https://smtp.maileroo.com/api/v2/emails" {
+	if c.Service.Email.EmailURL != "https://smtp.maileroo.com/api/v2/emails" {
 		t.Errorf(
 			"EmailURL = %q, want default %q",
-			c.EmailURL,
+			c.Service.Email.EmailURL,
 			"https://smtp.maileroo.com/api/v2/emails",
 		)
 	}
 
 	// Fields without defaults should be empty when unset.
-	if c.JwtSecret != "" ||
+	if c.Service.JwtOpts.JwtSecret != "" ||
 		c.DatabaseUrl != "" ||
-		c.MailerooApiKey != "" ||
-		c.EmailReciever != "" ||
-		c.EmailSender != "" {
+		c.Service.Email.MailerooApiKey != "" ||
+		c.Service.Email.EmailReciever != "" ||
+		c.Service.Email.EmailSender != "" {
 		t.Errorf("expected empty required fields when unset; got: %+v", c)
 	}
 }
@@ -120,13 +120,13 @@ func TestNewConfig_WithEnv(t *testing.T) {
 		"Port":            {c.Port, "9090"},
 		"Host":            {c.Host, "127.0.0.1"},
 		"Env":             {c.Env, "production"},
-		"UseSecureCookie": {c.UseSecureCookie, true},
-		"JwtSecret":       {c.JwtSecret, "supersecret"},
+		"UseSecureCookie": {c.Service.UseSecureCookie, true},
+		"JwtSecret":       {c.Service.JwtOpts.JwtSecret, "supersecret"},
 		"DatabaseUrl":     {c.DatabaseUrl, "postgres://user:pass@localhost:5432/db"},
-		"MailerooApiKey":  {c.MailerooApiKey, "mailer-key"},
-		"EmailReciever":   {c.EmailReciever, "to@example.com"},
-		"EmailSender":     {c.EmailSender, "from@example.com"},
-		"EmailURL":        {c.EmailURL, "https://custom.mail/api"},
+		"MailerooApiKey":  {c.Service.Email.MailerooApiKey, "mailer-key"},
+		"EmailReciever":   {c.Service.Email.EmailReciever, "to@example.com"},
+		"EmailSender":     {c.Service.Email.EmailSender, "from@example.com"},
+		"EmailURL":        {c.Service.Email.EmailURL, "https://custom.mail/api"},
 	}
 
 	for name, tt := range tests {

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"rifa/backend/pkg/config"
 	"rifa/backend/pkg/utils"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -12,6 +13,7 @@ import (
 
 func RequireSession(
 	api huma.API,
+	opts config.JwtOpts,
 ) func(ctx huma.Context, next func(ctx huma.Context)) {
 	return func(ctx huma.Context, next func(ctx huma.Context)) {
 		cookie, err := huma.ReadCookie(ctx, "session")
@@ -27,7 +29,7 @@ func RequireSession(
 			return
 		}
 
-		claims, err := utils.ValidateJWT(cookie.Value)
+		claims, err := utils.ValidateJWT(cookie.Value, opts)
 		if err != nil {
 			log.Println(err)
 			_ = huma.WriteErr(
@@ -46,6 +48,7 @@ func RequireSession(
 
 func RequireAdminSession(
 	api huma.API,
+	opts config.JwtOpts,
 ) func(ctx huma.Context, next func(ctx huma.Context)) {
 	return func(ctx huma.Context, next func(ctx huma.Context)) {
 		cookie, err := huma.ReadCookie(ctx, "session")
@@ -61,7 +64,7 @@ func RequireAdminSession(
 			return
 		}
 
-		claims, err := utils.ValidateJWT(cookie.Value)
+		claims, err := utils.ValidateJWT(cookie.Value, opts)
 		if err != nil {
 			log.Println(err)
 			_ = huma.WriteErr(
