@@ -7,13 +7,20 @@ import (
 )
 
 type Config struct {
-	Port        string `env:"PORT" envDefault:"8080"`
-	Host        string `env:"HOST" envDefault:"0.0.0.0"`
-	Env         string `env:"APP_ENV" envDefault:"development"`
-	Service     ServiceOpts
-	DatabaseUrl string `env:"DATABASE_URL"`
+	Server   ServerOpts
+	Database DatabaseOpts
+	Service  ServiceOpts
 }
 
+type ServerOpts struct {
+	Port string `env:"PORT" envDefault:"8080"`
+	Host string `env:"HOST" envDefault:"0.0.0.0"`
+	Env  string `env:"APP_ENV" envDefault:"development"`
+}
+
+type DatabaseOpts struct {
+	DatabaseUrl string `env:"DATABASE_URL"`
+}
 type ServiceOpts struct {
 	UseSecureCookie bool `env:"COOKIE_SECURE" envDefault:"false"`
 	JwtOpts         JwtOpts

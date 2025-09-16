@@ -51,7 +51,7 @@ var (
 	once    sync.Once
 )
 
-func Connect(ctx context.Context, drv Driver, cfg *config.Config) (DB, error) {
+func Connect(ctx context.Context, drv Driver, cfg *config.DatabaseOpts) (DB, error) {
 	once.Do(func() {
 		var err error
 		db, err = drv.Open(ctx, cfg.DatabaseUrl)
@@ -70,7 +70,7 @@ func Connect(ctx context.Context, drv Driver, cfg *config.Config) (DB, error) {
 	return db, initErr
 }
 
-func runMigrations(cfg *config.Config) error {
+func runMigrations(cfg *config.DatabaseOpts) error {
 	absMigrationsPath, err := filepath.Abs("migrations")
 	if err != nil {
 		return err

@@ -63,14 +63,14 @@ func TestNewConfig_Defaults(t *testing.T) {
 		t.Fatalf("NewConfig() error = %v", err)
 	}
 
-	if c.Port != "8080" {
-		t.Errorf("Port = %q, want %q", c.Port, "8080")
+	if c.Server.Port != "8080" {
+		t.Errorf("Port = %q, want %q", c.Server.Port, "8080")
 	}
-	if c.Host != "0.0.0.0" {
-		t.Errorf("Host = %q, want %q", c.Host, "0.0.0.0")
+	if c.Server.Host != "0.0.0.0" {
+		t.Errorf("Host = %q, want %q", c.Server.Host, "0.0.0.0")
 	}
-	if c.Env != "development" {
-		t.Errorf("Env = %q, want %q", c.Env, "development")
+	if c.Server.Env != "development" {
+		t.Errorf("Env = %q, want %q", c.Server.Env, "development")
 	}
 	if c.Service.UseSecureCookie != false {
 		t.Errorf("UseSecureCookie = %v, want %v", c.Service.UseSecureCookie, false)
@@ -85,7 +85,7 @@ func TestNewConfig_Defaults(t *testing.T) {
 
 	// Fields without defaults should be empty when unset.
 	if c.Service.JwtOpts.JwtSecret != "" ||
-		c.DatabaseUrl != "" ||
+		c.Database.DatabaseUrl != "" ||
 		c.Service.Email.MailerooApiKey != "" ||
 		c.Service.Email.EmailReciever != "" ||
 		c.Service.Email.EmailSender != "" {
@@ -117,12 +117,12 @@ func TestNewConfig_WithEnv(t *testing.T) {
 		got any
 		exp any
 	}{
-		"Port":            {c.Port, "9090"},
-		"Host":            {c.Host, "127.0.0.1"},
-		"Env":             {c.Env, "production"},
+		"Port":            {c.Server.Port, "9090"},
+		"Host":            {c.Server.Host, "127.0.0.1"},
+		"Env":             {c.Server.Env, "production"},
 		"UseSecureCookie": {c.Service.UseSecureCookie, true},
 		"JwtSecret":       {c.Service.JwtOpts.JwtSecret, "supersecret"},
-		"DatabaseUrl":     {c.DatabaseUrl, "postgres://user:pass@localhost:5432/db"},
+		"DatabaseUrl":     {c.Database.DatabaseUrl, "postgres://user:pass@localhost:5432/db"},
 		"MailerooApiKey":  {c.Service.Email.MailerooApiKey, "mailer-key"},
 		"EmailReciever":   {c.Service.Email.EmailReciever, "to@example.com"},
 		"EmailSender":     {c.Service.Email.EmailSender, "from@example.com"},
@@ -156,10 +156,10 @@ func TestNewConfig_Singleton(t *testing.T) {
 	if c1 != c2 {
 		t.Fatalf("expected same *Config instance (singleton); got different pointers")
 	}
-	if c2.Port != "1111" {
+	if c2.Server.Port != "1111" {
 		t.Errorf(
 			"singleton should not re-parse env; Port = %q, want %q",
-			c2.Port,
+			c2.Server.Port,
 			"1111",
 		)
 	}
