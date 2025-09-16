@@ -32,6 +32,7 @@ It allows users to purchase raffle tickets, manage payments, and view results in
 ├── frontend/        # React + TypeScript frontend (Vite)
 ├── .github/         # GitHub Actions workflows
 ├── Dockerfile       # Containerization setup
+├── LICENSE
 └── README.md
 ```
 
@@ -74,7 +75,7 @@ pnpm dev
 
 ## 🔑 Environment Variables (example)
 
-These names are examples—adjust to your actual config.
+These values are examples, adjust to your actual config.
 
 #### Backend
 
@@ -82,7 +83,9 @@ These names are examples—adjust to your actual config.
 DATABASE_URL=postgres://user:pass@localhost:5432/rifa?sslmode=disable
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=choose-a-strong-secret
+COOKIE_SECURE=true
 ENV=development
+EMAIL_ACCOUNT=email@example.com
 ```
 
 #### Frontend
@@ -112,7 +115,7 @@ cd frontend && pnpm test
 ## 🚀 Deployment
 
 Deployed on Railway with GitHub Actions CI/CD.
-Each commit to develop branch triggers a new deployment.
+Each commit to main branch triggers a new deployment.
 
 ## 📜 License
 

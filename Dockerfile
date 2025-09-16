@@ -1,13 +1,13 @@
 # Stage 1: Build frontend with pnpm
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable
 
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install
+RUN pnpm dependencies
 
 COPY frontend/ .
 
@@ -36,12 +36,14 @@ COPY backend/ ./
 COPY --from=frontend-builder /app/frontend/dist ./cmd/app/dist
 
 # Build the backend binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o bin/app ./cmd/app/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags "-s -w" -o bin/app ./cmd/app/main.go
 
 # Stage 3: Minimal runtime image
 FROM alpine:latest
 
 WORKDIR /app
+
+RUN addgroup -S app && adduser -S app -G app
 
 # Install ca-certificates to avoid HTTPS errors at runtime
 RUN apk add --no-cache ca-certificates
@@ -53,5 +55,6 @@ COPY --from=backend-builder /app/bin/app ./app
 COPY --from=backend-builder /app/migrations ./migrations
 
 EXPOSE 8080
+USER app
 
 CMD ["./app"]
