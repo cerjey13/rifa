@@ -8,23 +8,25 @@ export const PrizeInfo = () => (
     <p className='text-lg sm:text-xl text-white font-semibold'>
       Participa y gana!
     </p>
-    <div className='flex justify-center mx-auto max-w-[512px]'>
-      <picture>
-        <source
-          srcSet={premio512}
-          media='(min-width: 641px)'
-          type='image/webp'
-        />
-        <img
-          src={premio512}
-          alt='rifa'
-          width={512}
-          height={682}
-          loading='eager'
-          fetchPriority='high'
-          className='w-full max-w-xs sm:max-w-sm rounded-lg shadow-md object-cover'
-        />
-      </picture>
+    <div className='mx-auto max-h-[512px]'>
+      <div className='flex justify-center w-full aspect-[384/512]'>
+        <picture>
+          <source
+            srcSet={premio512}
+            media='(min-width: 384)'
+            type='image/webp'
+          />
+          <img
+            src={premio512}
+            alt='rifa'
+            width={384}
+            height={512}
+            loading='eager'
+            fetchPriority='high'
+            className='w-full max-w-xs sm:max-w-sm rounded-lg shadow-md object-cover'
+          />
+        </picture>
+      </div>
     </div>
     <p className='text-white font-medium flex justify-center gap-2 items-center'>
       <span>🏆 Premios:</span>
