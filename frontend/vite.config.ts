@@ -18,7 +18,7 @@ export default defineConfig({
   build: {
     sourcemap: false,
   },
-  plugins: [react(), tailwindcss(), visualizer({ open: true }), Inspect()],
+  plugins: [react(), tailwindcss(), visualizer({ open: false }), Inspect()],
   resolve: {
     alias: {
       '@src': path.resolve(__dirname, 'src'),
