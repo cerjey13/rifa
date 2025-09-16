@@ -10,6 +10,11 @@ COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install
 
 COPY frontend/ .
+
+# env vars for fallback
+ENV VITE_MONTO_BS=150
+ENV VITE_MONTO_USD=1
+
 RUN pnpm run build
 
 # Stage 2: Build backend with Go 1.24.x
@@ -25,8 +30,7 @@ COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
 # Copy backend source code
-COPY backend/cmd ./cmd
-COPY backend/internal ./internal
+COPY backend/ ./
 
 # Copy frontend build output from frontend-builder into backend embed folder
 COPY --from=frontend-builder /app/frontend/dist ./cmd/app/dist
@@ -45,6 +49,9 @@ RUN apk add --no-cache ca-certificates
 # Copy the backend binary
 COPY --from=backend-builder /app/bin/app ./app
 
+# Copy migrations folder
+COPY --from=backend-builder /app/migrations ./migrations
+
 EXPOSE 8080
 
-CMD ["./api"]
+CMD ["./app"]

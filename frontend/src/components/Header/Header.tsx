@@ -1,65 +1,70 @@
-import logo from '@src/assets/react.svg';
-import { useState } from 'react';
 import { LoginRegisterModal } from '@src/components/AuthModal/Modal';
 import { useAuth } from '@src/context/useAuth';
+import { useModal } from '@src/context/useModal';
+import logo from '@src/assets/logo.svg';
 
 export const Header = () => {
-  const { user, setUser } = useAuth();
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [isRegister, setIsRegister] = useState<boolean>(false);
+  const { user, authReady, logout } = useAuth();
+  const { modalOpen, isRegister, openLoginModal, closeModal } = useModal();
 
-  const openModal = (register = false) => {
-    setIsRegister(register);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => setModalOpen(false);
-
-  const login = (email: string, role: 'user' | 'admin') => {
-    setUser({ email, role });
+  const login = () => {
     closeModal();
   };
-
-  const logout = () => setUser(null);
 
   return (
     <>
       <header className='sticky top-0 z-50 w-full flex justify-between items-center px-4 py-3 bg-[#121726cc] backdrop-blur-md shadow-md max-w-screen-xl mx-auto text-white'>
-        <img src={logo} alt='Logo' className='h-10' />
+        <div className='flex items-center gap-3'>
+          <a href='/'>
+            <img src={logo} alt='Logo' className='h-10 aspect-[1.22] rounded' />
+          </a>
+          {authReady && user && (
+            <span
+              title={user.email}
+              className='text-sm sm:text-base font-medium text-white truncate max-w-[120px] sm:max-w-none'
+            >
+              Hola {user.name}!
+            </span>
+          )}
+        </div>
+
         <nav className='flex items-center space-x-6 font-semibold text-sm'>
           {!user && (
             <button
-              onClick={() => openModal(false)}
-              className='bg-[#F97316] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition'
+              onClick={() => openLoginModal(false)}
+              className='bg-[#C2410C] text-white px-4 py-2 rounded-md hover:bg-[#9A3412] transition'
             >
               Iniciar sesión / Registrarse
             </button>
           )}
 
           <a
-            href='https://wa.me/your-number'
+            href='https://wa.me/+584141551801'
             target='_blank'
             rel='noreferrer'
             className='hover:text-[#F97316] transition-colors'
           >
             Whatsapp
           </a>
-          <a
-            href='/events'
-            className='hover:text-brandOrange transition-colors'
-          >
-            Eventos
-          </a>
 
-          {user && (
+          {authReady && user && (
             <>
               {user.role === 'admin' && (
-                <a href='/dashboard' className='hover:text-brandOrange'>
+                <a href='/dashboard' className='hover:text-orange-400'>
                   Dashboard
                 </a>
               )}
-              <button onClick={logout} className='hover:text-brandOrange'>
-                Cerrar sesión
+              <button
+                onClick={() => {
+                  logout.mutate(undefined, {
+                    onSuccess: () => {
+                      setTimeout(() => window.location.reload(), 50);
+                    },
+                  });
+                }}
+                className='hover:text-orange-400'
+              >
+                Cerrar Sesión
               </button>
             </>
           )}
@@ -70,7 +75,7 @@ export const Header = () => {
         <LoginRegisterModal
           isRegister={isRegister}
           onClose={closeModal}
-          onSwitch={() => setIsRegister(!isRegister)}
+          onSwitch={() => openLoginModal(!isRegister)}
           onLogin={login}
         />
       )}

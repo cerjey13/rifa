@@ -1,0 +1,3 @@
+DROP FUNCTION IF EXISTS uuid7(timestamp with time zone);
+DROP FUNCTION IF EXISTS uuid7();
+DROP EXTENSION IF EXISTS pgcrypto;

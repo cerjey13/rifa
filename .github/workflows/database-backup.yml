@@ -1,0 +1,35 @@
+name: Nightly Postgres Backup (14-day retention)
+
+on:
+  schedule:
+    # Runs 03:17 America/Argentina/Buenos_Aires (UTC-3) => 06:17 UTC
+    - cron: '17 6 * * *'
+    # manual trigger
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Make filename with UTC timestamp
+        id: meta
+        run: echo "FILE=pg_$(date -u +'%Y%m%d-%H%M%S').dump" >> $GITHUB_OUTPUT
+
+      - name: Dump database (-Fc format for pg_restore)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pg_dump --format=custom --compress=9 "$DATABASE_URL" --file "${{ steps.meta.outputs.FILE }}"
+
+      - name: Upload artifact (kept 14 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-postgres
+          path: ${{ steps.meta.outputs.FILE }}
+          retention-days: 14

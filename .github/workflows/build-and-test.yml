@@ -1,0 +1,35 @@
+name: Build and Test
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/build-and-test.yml'
+  workflow_call:
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Stub dist for embed
+        run: |
+          mkdir -p cmd/app/dist
+          echo '<!doctype html><title>stub</title>' > cmd/app/dist/index.html
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        working-directory: backend
+        run: go test -v ./...

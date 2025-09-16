@@ -1,10 +1,18 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"io/fs"
 	"log"
 	"net/http"
+
+	"rifa/backend/internal/core"
+	"rifa/backend/pkg/config"
+	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logger"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 //go:embed all:dist
@@ -15,14 +23,35 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to locate embedded dist: %v", err)
 	}
-	mux := http.NewServeMux()
-	mux.Handle("/api/hello", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello from Go!"))
-	}))
 
-	// Static frontend
-	mux.Handle("/", http.FileServer(http.FS(dist)))
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatal("failed to load environment variables")
+	}
 
-	log.Println("Listening on :8080")
-	http.ListenAndServe(":8080", mux)
+	logger := logger.New(cfg.Env)
+	driver := database.NewPostgresDriver()
+	dbAdapter, err := database.Connect(context.Background(), driver, cfg)
+	if err != nil {
+		log.Fatalf("failed to start the db: %v", err)
+	}
+	defer dbAdapter.Close()
+
+	front := http.FS(dist)
+	server, err := core.NewHttpServer(
+		dbAdapter,
+		front,
+		core.HttpServerOptions{
+			Logger:        logger,
+			Host:          cfg.Host,
+			Port:          cfg.Port,
+			SecureCookies: cfg.UseSecureCookie,
+		},
+	)
+	if err != nil {
+		log.Fatal("failed to config the server")
+	}
+
+	log.Println("Rifa backend listening on :" + cfg.Port)
+	log.Fatal(server.ListenAndServe())
 }

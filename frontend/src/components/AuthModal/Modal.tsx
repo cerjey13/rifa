@@ -5,7 +5,7 @@ interface LoginRegisterModalProps {
   isRegister: boolean;
   onClose: () => void;
   onSwitch: () => void;
-  onLogin: (email: string, role: 'user' | 'admin') => void;
+  onLogin: () => void;
 }
 
 export const LoginRegisterModal = ({
@@ -26,7 +26,7 @@ export const LoginRegisterModal = ({
         </button>
 
         {isRegister ? (
-          <RegisterForm onLogin={onLogin} />
+          <RegisterForm onSwitch={onSwitch} />
         ) : (
           <LoginForm onLogin={onLogin} onSwitch={onSwitch} />
         )}
