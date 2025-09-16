@@ -63,32 +63,32 @@ func TestNewConfig_Defaults(t *testing.T) {
 		t.Fatalf("NewConfig() error = %v", err)
 	}
 
-	if c.Port != "8080" {
-		t.Errorf("Port = %q, want %q", c.Port, "8080")
+	if c.Server.Port != "8080" {
+		t.Errorf("Port = %q, want %q", c.Server.Port, "8080")
 	}
-	if c.Host != "0.0.0.0" {
-		t.Errorf("Host = %q, want %q", c.Host, "0.0.0.0")
+	if c.Server.Host != "0.0.0.0" {
+		t.Errorf("Host = %q, want %q", c.Server.Host, "0.0.0.0")
 	}
-	if c.Env != "development" {
-		t.Errorf("Env = %q, want %q", c.Env, "development")
+	if c.Server.Env != "development" {
+		t.Errorf("Env = %q, want %q", c.Server.Env, "development")
 	}
-	if c.UseSecureCookie != false {
-		t.Errorf("UseSecureCookie = %v, want %v", c.UseSecureCookie, false)
+	if c.Service.UseSecureCookie != false {
+		t.Errorf("UseSecureCookie = %v, want %v", c.Service.UseSecureCookie, false)
 	}
-	if c.EmailURL != "https://smtp.maileroo.com/api/v2/emails" {
+	if c.Service.Email.EmailURL != "https://smtp.maileroo.com/api/v2/emails" {
 		t.Errorf(
 			"EmailURL = %q, want default %q",
-			c.EmailURL,
+			c.Service.Email.EmailURL,
 			"https://smtp.maileroo.com/api/v2/emails",
 		)
 	}
 
 	// Fields without defaults should be empty when unset.
-	if c.JwtSecret != "" ||
-		c.DatabaseUrl != "" ||
-		c.MailerooApiKey != "" ||
-		c.EmailReciever != "" ||
-		c.EmailSender != "" {
+	if c.Service.JwtOpts.JwtSecret != "" ||
+		c.Database.DatabaseUrl != "" ||
+		c.Service.Email.MailerooApiKey != "" ||
+		c.Service.Email.EmailReciever != "" ||
+		c.Service.Email.EmailSender != "" {
 		t.Errorf("expected empty required fields when unset; got: %+v", c)
 	}
 }
@@ -117,16 +117,16 @@ func TestNewConfig_WithEnv(t *testing.T) {
 		got any
 		exp any
 	}{
-		"Port":            {c.Port, "9090"},
-		"Host":            {c.Host, "127.0.0.1"},
-		"Env":             {c.Env, "production"},
-		"UseSecureCookie": {c.UseSecureCookie, true},
-		"JwtSecret":       {c.JwtSecret, "supersecret"},
-		"DatabaseUrl":     {c.DatabaseUrl, "postgres://user:pass@localhost:5432/db"},
-		"MailerooApiKey":  {c.MailerooApiKey, "mailer-key"},
-		"EmailReciever":   {c.EmailReciever, "to@example.com"},
-		"EmailSender":     {c.EmailSender, "from@example.com"},
-		"EmailURL":        {c.EmailURL, "https://custom.mail/api"},
+		"Port":            {c.Server.Port, "9090"},
+		"Host":            {c.Server.Host, "127.0.0.1"},
+		"Env":             {c.Server.Env, "production"},
+		"UseSecureCookie": {c.Service.UseSecureCookie, true},
+		"JwtSecret":       {c.Service.JwtOpts.JwtSecret, "supersecret"},
+		"DatabaseUrl":     {c.Database.DatabaseUrl, "postgres://user:pass@localhost:5432/db"},
+		"MailerooApiKey":  {c.Service.Email.MailerooApiKey, "mailer-key"},
+		"EmailReciever":   {c.Service.Email.EmailReciever, "to@example.com"},
+		"EmailSender":     {c.Service.Email.EmailSender, "from@example.com"},
+		"EmailURL":        {c.Service.Email.EmailURL, "https://custom.mail/api"},
 	}
 
 	for name, tt := range tests {
@@ -156,10 +156,10 @@ func TestNewConfig_Singleton(t *testing.T) {
 	if c1 != c2 {
 		t.Fatalf("expected same *Config instance (singleton); got different pointers")
 	}
-	if c2.Port != "1111" {
+	if c2.Server.Port != "1111" {
 		t.Errorf(
 			"singleton should not re-parse env; Port = %q, want %q",
-			c2.Port,
+			c2.Server.Port,
 			"1111",
 		)
 	}

@@ -10,14 +10,15 @@ import (
 	"rifa/backend/api/httpx/form"
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/auth"
+	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
-	srv := auth.NewAuthService(db)
+func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
+	srv := auth.NewAuthService(db, opts)
 
 	huma.Register(
 		api,
@@ -75,7 +76,7 @@ func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
 					Value:    user.AccessToken,
 					Path:     "/",
 					HttpOnly: true,
-					Secure:   secureCookies,
+					Secure:   opts.UseSecureCookie,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(7 * 24 * time.Hour),
 				},
@@ -86,11 +87,13 @@ func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID:   "me",
-			Method:        http.MethodGet,
-			Path:          "/api/me",
-			Summary:       "check current user session",
-			Middlewares:   huma.Middlewares{mymiddlewares.RequireSession(api)},
+			OperationID: "me",
+			Method:      http.MethodGet,
+			Path:        "/api/me",
+			Summary:     "check current user session",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireSession(api, opts.JwtOpts),
+			},
 			DefaultStatus: http.StatusOK,
 		},
 		func(ctx context.Context, _ *struct{}) (*dto.MeOutput, error) {
@@ -124,7 +127,7 @@ func RegisterAuthRoutes(api huma.API, secureCookies bool, db database.DB) {
 					Value:    "",
 					Path:     "/",
 					HttpOnly: true,
-					Secure:   secureCookies,
+					Secure:   opts.UseSecureCookie,
 					SameSite: http.SameSiteLaxMode,
 					Expires:  time.Now().Add(-1 * time.Hour),
 					MaxAge:   -1,

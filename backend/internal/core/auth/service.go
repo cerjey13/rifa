@@ -7,6 +7,7 @@ import (
 	"rifa/backend/api/httpx/form"
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
+	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/utils"
 )
@@ -17,12 +18,14 @@ type Service interface {
 }
 
 type service struct {
-	users repository.UserRepository
+	users  repository.UserRepository
+	config config.ServiceOpts
 }
 
-func NewAuthService(db database.DB) Service {
+func NewAuthService(db database.DB, opts config.ServiceOpts) Service {
 	return &service{
-		users: repository.NewUserRepository(db),
+		users:  repository.NewUserRepository(db),
+		config: opts,
 	}
 }
 
@@ -64,7 +67,7 @@ func (s *service) Login(
 		return types.AuthUser{}, errors.New("invalid email or password")
 	}
 
-	jwt, err := utils.GenerateJWT(user)
+	jwt, err := utils.GenerateJWT(user, s.config.JwtOpts)
 	if err != nil {
 		return types.AuthUser{}, err
 	}

@@ -47,7 +47,7 @@ func TestConnect_DriverError_IsCached(t *testing.T) {
 	t.Cleanup(resetSingleton)
 
 	drv := &fakeDriver{err: errors.New("open failed")}
-	cfg := &config.Config{DatabaseUrl: "postgres://does-not-matter"}
+	cfg := &config.DatabaseOpts{DatabaseUrl: "postgres://does-not-matter"}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -87,7 +87,7 @@ func TestConnect_MigrationError_ReturnsError_AndSingleton(t *testing.T) {
 	fdb := &fakeDB{}
 	drv := &fakeDriver{dbToReturn: fdb}
 
-	cfg := &config.Config{
+	cfg := &config.DatabaseOpts{
 		DatabaseUrl: "postgres://user:pass@localhost:5432/db?sslmode=disable",
 	}
 
@@ -137,7 +137,7 @@ func TestConnect_Singleton_Concurrency(t *testing.T) {
 
 	fdb := &fakeDB{}
 	drv := &fakeDriver{dbToReturn: fdb}
-	cfg := &config.Config{
+	cfg := &config.DatabaseOpts{
 		DatabaseUrl: "postgres://user:pass@localhost:5432/db?sslmode=disable",
 	}
 
