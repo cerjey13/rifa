@@ -9,6 +9,7 @@ import (
 
 	"rifa/backend/api"
 	"rifa/backend/internal/core/spa"
+	"rifa/backend/pkg/config"
 	"rifa/backend/pkg/db"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -60,8 +61,8 @@ type HttpServerOptions struct {
 	// Middlewares is a list of middlewares to be applied to the server
 	Middlewares []func(http.Handler) http.Handler
 
-	//
-	SecureCookies bool
+	// ServiceOpts have the environment variables to initialize services
+	ServiceOpts config.ServiceOpts
 }
 type HttpServer struct {
 	*chi.Mux
@@ -84,7 +85,7 @@ func NewHttpServer(
 	router.Use(chimdw.RequestID)
 	router.Use(chimdw.RealIP)
 	router.Use(chimdw.Timeout(15 * time.Second))
-	router.Use(httprate.LimitAll(10, 1*time.Second))
+	router.Use(httprate.LimitAll(50, 1*time.Second))
 	router.NotFound(spa.SpaHandler(front))
 	router.Use(chimdw.Compress(4))
 	router.Use(chimdw.Recoverer)
@@ -92,7 +93,7 @@ func NewHttpServer(
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
 	humaApi := humachi.New(router, apiConfig)
-	api.RegisterHttpRoutes(humaApi, db, opts.SecureCookies)
+	api.RegisterHttpRoutes(humaApi, db, opts.ServiceOpts)
 
 	server := &HttpServer{
 		router,

@@ -29,9 +29,9 @@ func main() {
 		log.Fatal("failed to load environment variables")
 	}
 
-	logger := logger.New(cfg.Env)
+	logger := logger.New(cfg.Server.Env)
 	driver := database.NewPostgresDriver()
-	dbAdapter, err := database.Connect(context.Background(), driver, cfg)
+	dbAdapter, err := database.Connect(context.Background(), driver, &cfg.Database)
 	if err != nil {
 		log.Fatalf("failed to start the db: %v", err)
 	}
@@ -42,16 +42,16 @@ func main() {
 		dbAdapter,
 		front,
 		core.HttpServerOptions{
-			Logger:        logger,
-			Host:          cfg.Host,
-			Port:          cfg.Port,
-			SecureCookies: cfg.UseSecureCookie,
+			Logger:      logger,
+			Host:        cfg.Server.Host,
+			Port:        cfg.Server.Port,
+			ServiceOpts: cfg.Service,
 		},
 	)
 	if err != nil {
 		log.Fatal("failed to config the server")
 	}
 
-	log.Println("Rifa backend listening on :" + cfg.Port)
+	log.Println("Rifa backend listening on :" + cfg.Server.Port)
 	log.Fatal(server.ListenAndServe())
 }
