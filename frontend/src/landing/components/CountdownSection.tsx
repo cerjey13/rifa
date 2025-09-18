@@ -17,9 +17,8 @@ const CountdownSection = ({
   return (
     <div className='p-4 space-y-4 max-w-lg mx-auto'>
       <div className='flex flex-wrap items-center gap-3 text-brandLightGray'>
-        <span className='flex items-center gap-1'>
-          🕑La rifa se llevará a cabo luego de tener el 80% de los boletos
-          vendidos.
+        <span className='flex items-center gap-1 font-semibold'>
+          🕑La rifa se llevará a cabo el 24 de diciembre 2025 (24/12/2025).
         </span>
       </div>
 
