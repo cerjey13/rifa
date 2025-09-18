@@ -3,6 +3,8 @@ import { FaInstagram, FaTiktok } from 'react-icons/fa';
 import { TermsModal } from '@src/components/Terms/TermsModal';
 import { PrivacyModal } from '@src/components/Privacy/PrivacyModal';
 import logo from '@src/assets/logo.svg';
+import conalot from '@src/assets/conalot.jpg';
+import tachira from '@src/assets/tachira.jpg';
 
 export const Footer = () => {
   const [termsOpen, setTermsOpen] = useState(false);
@@ -13,7 +15,11 @@ export const Footer = () => {
       <footer className='bg-[#121726] text-white text-sm px-5 pb-5 mt-5'>
         <div className='max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8'>
           <div>
-            <img src={logo} alt='Logo' className='h-10 aspect-[1.22]' />
+            <div className='flex items-center space-x-4'>
+              <img src={logo} alt='Logo' className='h-10 aspect-[1.22]' />
+              <img src={conalot} alt='Conalot' className='h-10 aspect-[1.22]' />
+              <img src={tachira} alt='Tachira' className='h-10 aspect-[1.22]' />
+            </div>
             <p className='text-gray-400 mt-2'>
               Tu plataforma de confianza para rifas emocionantes. Premios
               increíbles, transparencia total y la mejor experiencia de usuario.
