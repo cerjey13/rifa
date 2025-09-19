@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 
+	"github.com/exaring/otelpgx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -11,8 +12,14 @@ type postgresDriver struct{}
 
 func NewPostgresDriver() Driver { return &postgresDriver{} }
 
-func (postgresDriver) Open(ctx context.Context, dsn string) (DB, error) {
-	pool, err := pgxpool.New(ctx, dsn)
+func (postgresDriver) Open(ctx context.Context, conn string) (DB, error) {
+	cfg, err := pgxpool.ParseConfig(conn)
+	if err != nil {
+		return nil, err
+	}
+	cfg.ConnConfig.Tracer = otelpgx.NewTracer()
+
+	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +27,7 @@ func (postgresDriver) Open(ctx context.Context, dsn string) (DB, error) {
 		pool.Close()
 		return nil, err
 	}
-	// Wrap pgxpool with your adapter so callers use your DB interface
+	// Wrap pool with the adapter so callers use DB interface
 	return NewPGX(pool), nil
 }
 

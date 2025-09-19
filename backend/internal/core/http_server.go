@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimdw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
+	"github.com/riandyrn/otelchi"
 )
 
 // FS is an interface that abstracts filesystem operations.
@@ -46,11 +47,8 @@ type HttpServerOptions struct {
 	// Logger is used for server-related logging
 	Logger *slog.Logger
 
-	// Host specifies the server binding address
-	Host string
-
-	// Port specifies the server listening port
-	Port string
+	// ServerOpts specifies the server config options
+	ServerOpts config.ServerOpts
 
 	// SpaFS is the embedded filesystem for SPA files
 	SpaFS FS
@@ -84,22 +82,29 @@ func NewHttpServer(
 	router.Use(chimdw.Logger)
 	router.Use(chimdw.RequestID)
 	router.Use(chimdw.RealIP)
+	router.Use(chimdw.Recoverer)
 	router.Use(chimdw.Timeout(15 * time.Second))
 	router.Use(httprate.LimitAll(50, 1*time.Second))
-	router.NotFound(spa.SpaHandler(front))
 	router.Use(chimdw.Compress(4))
-	router.Use(chimdw.Recoverer)
+	router.Use(otelchi.Middleware("rifa", otelchi.WithChiRoutes(router)))
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
 	humaApi := humachi.New(router, apiConfig)
 	api.RegisterHttpRoutes(humaApi, db, opts.ServiceOpts)
 
+	router.Get("/", spa.SpaHandler(front))
+	router.NotFound(spa.SpaHandler(front))
+
 	server := &HttpServer{
 		router,
 		&http.Server{
-			Addr:    opts.Host + ":" + opts.Port,
-			Handler: router,
+			Addr:              opts.ServerOpts.Host + ":" + opts.ServerOpts.Port,
+			Handler:           router,
+			ReadTimeout:       opts.ServerOpts.TimeOuts.Read,
+			WriteTimeout:      opts.ServerOpts.TimeOuts.Write,
+			ReadHeaderTimeout: opts.ServerOpts.TimeOuts.ReadHeader,
+			IdleTimeout:       opts.ServerOpts.TimeOuts.Idle,
 		},
 		opts.ApiDocs,
 		opts.Logger,
