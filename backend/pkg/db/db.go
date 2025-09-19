@@ -51,7 +51,11 @@ var (
 	once    sync.Once
 )
 
-func Connect(ctx context.Context, drv Driver, cfg *config.DatabaseOpts) (DB, error) {
+func Connect(
+	ctx context.Context,
+	drv Driver,
+	cfg *config.DatabaseOpts,
+) (DB, error) {
 	once.Do(func() {
 		var err error
 		db, err = drv.Open(ctx, cfg.DatabaseUrl)

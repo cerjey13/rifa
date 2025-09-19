@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"rifa/backend/internal/types"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 // Mailer defines the contract for sending emails.
@@ -32,7 +34,10 @@ func NewMailerooClient(apiKey, from, to, url string) Mailer {
 		from:     from,
 		to:       to,
 		emailURL: url,
-		client:   &http.Client{Timeout: 10 * time.Second},
+		client: &http.Client{
+			Transport: otelhttp.NewTransport(http.DefaultTransport),
+			Timeout:   10 * time.Second,
+		},
 	}
 }
 
