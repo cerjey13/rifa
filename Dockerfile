@@ -17,8 +17,8 @@ ENV VITE_MONTO_USD=1
 
 RUN pnpm run build
 
-# Stage 2: Build backend with Go 1.24.x
-FROM golang:1.24-alpine AS backend-builder
+# Stage 2: Build backend with Go 1.25.x
+FROM golang:1.25-alpine AS backend-builder
 
 WORKDIR /app
 
