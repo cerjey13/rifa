@@ -25,6 +25,10 @@ func InitCollector(
 	ctx context.Context,
 	opts config.CollectorOpts,
 ) (Shutdown, error) {
+	if opts.CollectorEnv == "development" {
+		return func(context.Context) error { return nil }, nil
+	}
+
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName("rifa-backend"),

@@ -25,6 +25,8 @@ coverage
 *.sln
 *.sw?
 
+# Configs
+otel-collector.yaml
 
 # Secrets
 .env
