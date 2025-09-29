@@ -11,18 +11,16 @@ func TestInitCollector(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name     string
-		opts     config.CollectorOpts
-		wantErr  bool
-		wantNoop bool
+		name    string
+		opts    config.CollectorOpts
+		wantErr bool
 	}{
 		{
 			name: "development mode skips collector",
 			opts: config.CollectorOpts{
 				CollectorEnv: "development",
 			},
-			wantErr:  false,
-			wantNoop: true,
+			wantErr: false,
 		},
 		{
 			name: "invalid endpoint triggers error",
@@ -30,8 +28,7 @@ func TestInitCollector(t *testing.T) {
 				CollectorEnv:      "production",
 				CollectorExporter: "invalid:://endpoint",
 			},
-			wantErr:  true,
-			wantNoop: false,
+			wantErr: true,
 		},
 	}
 
@@ -56,12 +53,6 @@ func TestInitCollector(t *testing.T) {
 			// Call shutdown to ensure it's safe (no panic, no error)
 			if err := shutdown(ctx); err != nil {
 				t.Errorf("shutdown returned error: %v", err)
-			}
-
-			if tt.wantNoop {
-				// In dev mode the shutdown is a simple no-op
-				// We can't directly test internal providers,
-				// but we ensure it executes without error.
 			}
 		})
 	}
