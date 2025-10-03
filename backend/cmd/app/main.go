@@ -11,7 +11,7 @@ import (
 	"rifa/backend/internal/core"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
-	"rifa/backend/pkg/logger"
+	"rifa/backend/pkg/logx"
 	"rifa/backend/pkg/telemetry"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -31,7 +31,6 @@ func main() {
 		log.Fatalf("failed to load environment variables: %v", err)
 	}
 
-	logger := logger.New(cfg.Server.Env)
 	driver := database.NewPostgresDriver()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -52,6 +51,7 @@ func main() {
 		}
 	}()
 
+	logger := logx.NewLogger(cfg.Server.Env)
 	front := http.FS(dist)
 	server, err := core.NewHttpServer(
 		dbAdapter,

@@ -2,6 +2,7 @@ package email
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -16,7 +17,7 @@ import (
 
 // Mailer defines the contract for sending emails.
 type Mailer interface {
-	SendPurchaseConfirmation(purchase types.Purchase) error
+	SendPurchaseConfirmation(ctx context.Context, purchase types.Purchase) error
 }
 
 type mailerooClient struct {
@@ -42,7 +43,10 @@ func NewMailerooClient(apiKey, from, to, url string) Mailer {
 }
 
 // SendPurchaseConfirmation sends a confirmation email using Maileroo.
-func (m *mailerooClient) SendPurchaseConfirmation(purchase types.Purchase) error {
+func (m *mailerooClient) SendPurchaseConfirmation(
+	ctx context.Context,
+	purchase types.Purchase,
+) error {
 	htmlBody := fmt.Sprintf(
 		EmailHTMLTemplate,
 		purchase.UserID,
@@ -72,7 +76,8 @@ func (m *mailerooClient) SendPurchaseConfirmation(purchase types.Purchase) error
 		return fmt.Errorf("failed to marshal email payload: %w", err)
 	}
 
-	req, err := http.NewRequest(
+	req, err := http.NewRequestWithContext(
+		ctx,
 		http.MethodPost,
 		m.emailURL,
 		bytes.NewReader(body),

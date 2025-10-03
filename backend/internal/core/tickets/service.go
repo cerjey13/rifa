@@ -6,6 +6,7 @@ import (
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 )
 
 type Service interface {
@@ -23,12 +24,14 @@ type Service interface {
 }
 
 type service struct {
-	repo repository.TicketRepository
+	repo   repository.TicketRepository
+	logger logx.Logger
 }
 
-func NewService(db database.DB) Service {
+func NewService(db database.DB, logger logx.Logger) Service {
 	return &service{
-		repo: repository.NewTicketRepository(db),
+		repo:   repository.NewTicketRepository(db),
+		logger: logger,
 	}
 }
 
@@ -40,7 +43,7 @@ func (s *service) BuyTickets(
 	selectedNumbers []string,
 	quantity int,
 ) ([]types.Ticket, error) {
-	return s.repo.AssignTickets(
+	tickets, err := s.repo.AssignTickets(
 		ctx,
 		lotteryID,
 		userID,
@@ -48,6 +51,18 @@ func (s *service) BuyTickets(
 		selectedNumbers,
 		quantity,
 	)
+	if err != nil {
+		s.logger.Error(
+			"Failed to purchase tickets",
+			"user",
+			userID,
+			"error",
+			err,
+		)
+		return nil, err
+	}
+
+	return tickets, nil
 }
 
 func (s *service) SearchTickets(
@@ -56,17 +71,37 @@ func (s *service) SearchTickets(
 ) ([]int, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
+		s.logger.Error("Failed to get active lottery", "error", err)
 		return nil, err
 	}
-	return s.repo.GetUnavailableNumbers(ctx, lotteryID, tickets)
+
+	numbers, err := s.repo.GetUnavailableNumbers(ctx, lotteryID, tickets)
+	if err != nil {
+		s.logger.Error(
+			"Failed to check if the selected numbers are unavailable",
+			"error",
+			err,
+		)
+		return nil, err
+	}
+
+	return numbers, nil
 }
 
 func (s *service) GetAvailability(ctx context.Context) (float64, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
+		s.logger.Error("Failed to get active lottery", "error", err)
 		return 0, err
 	}
-	return s.repo.GetAvailabilityPercentage(ctx, lotteryID)
+
+	percentage, err := s.repo.GetAvailabilityPercentage(ctx, lotteryID)
+	if err != nil {
+		s.logger.Error("Failed to get")
+		return 0, err
+	}
+
+	return percentage, nil
 }
 
 func (s *service) GetUserTickets(
@@ -75,7 +110,21 @@ func (s *service) GetUserTickets(
 ) ([]int, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
+		s.logger.Error("Failed to get active lottery", "error", err)
 		return nil, err
 	}
-	return s.repo.GetUserTickets(ctx, userID, lotteryID)
+
+	userTickets, err := s.repo.GetUserTickets(ctx, userID, lotteryID)
+	if err != nil {
+		s.logger.Error(
+			"Failed to retrieve user buyed tickets",
+			"user",
+			userID,
+			"error",
+			err,
+		)
+		return nil, err
+	}
+
+	return userTickets, nil
 }

@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"rifa/backend/api/httpx/dto"
@@ -11,12 +10,18 @@ import (
 	"rifa/backend/internal/core/price"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 
 	"github.com/danielgtaylor/huma/v2"
 )
 
-func RegisterPriceRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
-	srv := price.NewService(db)
+func RegisterPriceRoutes(
+	api huma.API,
+	db database.DB,
+	logger logx.Logger,
+	opts config.ServiceOpts,
+) {
+	srv := price.NewService(db, logger)
 
 	huma.Register(
 		api,
@@ -33,7 +38,6 @@ func RegisterPriceRoutes(api huma.API, db database.DB, opts config.ServiceOpts) 
 		) (*dto.PriceOutput, error) {
 			prices, err := srv.GetPrices(ctx)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Failed to get prices",
 				)
@@ -66,9 +70,8 @@ func RegisterPriceRoutes(api huma.API, db database.DB, opts config.ServiceOpts) 
 		) (*struct{}, error) {
 			err := srv.Update(ctx, input.Body.BS, input.Body.USD)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
-					"Failed to get prices",
+					"Failed to update/save new prices",
 				)
 			}
 
