@@ -5,6 +5,7 @@ import { CopyableText } from '@src/components/Clipboard/Copy';
 import { toast } from 'sonner';
 
 interface BuyFormProps {
+  userId: string;
   quantity: number;
   montoBs: number;
   montoUSD: number;
@@ -20,6 +21,7 @@ const paymentMethods = {
 } as const;
 
 export const BuyForm = ({
+  userId,
   quantity,
   montoBs,
   montoUSD,
@@ -65,6 +67,7 @@ export const BuyForm = ({
 
     try {
       await submitPurchase({
+        userId,
         quantity,
         montoBs: montoBs.toFixed(2),
         montoUSD: montoUSD.toFixed(2),

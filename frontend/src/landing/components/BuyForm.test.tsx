@@ -22,6 +22,7 @@ function renderBuyFormUI(
   overrides?: Partial<React.ComponentProps<typeof BuyForm>>,
 ) {
   const props: React.ComponentProps<typeof BuyForm> = {
+    userId: '1234a',
     quantity: 2,
     montoBs: 200,
     montoUSD: 20,

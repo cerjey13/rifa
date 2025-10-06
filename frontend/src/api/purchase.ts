@@ -1,6 +1,8 @@
+import { buildIdempotencyKey } from '@src/utils/key';
 import { AuthError } from './auth';
 
 export async function submitPurchase(purchase: {
+  userId: string;
   quantity: number;
   montoBs: string;
   montoUSD: string;
@@ -23,13 +25,27 @@ export async function submitPurchase(purchase: {
   );
   formData.append('paymentScreenshot', purchase.paymentScreenshot);
 
-  const res = await fetch('/api/purchases', {
-    method: 'POST',
-    body: formData,
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    throw new Error(await res.text());
+  let idempotencyKey = sessionStorage.getItem('currentPurchaseKey');
+  if (!idempotencyKey) {
+    idempotencyKey = await buildIdempotencyKey(purchase);
+    sessionStorage.setItem('currentPurchaseKey', idempotencyKey);
+  }
+
+  try {
+    const res = await fetch('/api/purchases', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      headers: {
+        'Idempotency-Key': idempotencyKey,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+  } finally {
+    sessionStorage.removeItem('currentPurchaseKey');
   }
 }
 

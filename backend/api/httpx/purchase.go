@@ -12,6 +12,7 @@ import (
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/email"
 	"rifa/backend/internal/core/purchase"
+	"rifa/backend/internal/repository"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/logx"
@@ -36,6 +37,7 @@ func RegisterPurchaseRoutes(
 		opts.Email.EmailURL,
 	)
 	srv := purchase.NewService(db, logger, emailer)
+	idempotencyRepo := repository.NewIdempotencyRepository(db)
 
 	huma.Register(
 		api,
@@ -46,6 +48,11 @@ func RegisterPurchaseRoutes(
 			Summary:     "Submit a purchase",
 			Middlewares: huma.Middlewares{
 				mymiddlewares.RequireSession(api, opts.JwtOpts),
+				mymiddlewares.IdempotencyMiddleware(
+					api,
+					idempotencyRepo,
+					logger,
+				),
 			},
 			DefaultStatus: http.StatusCreated,
 		},

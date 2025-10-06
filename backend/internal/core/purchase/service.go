@@ -123,11 +123,11 @@ func (s *service) Create(
 		return err
 	}
 
-	go func(ctx context.Context, p *types.Purchase) {
-		c, cancel := context.WithTimeout(ctx, 5*time.Second)
+	go func(p *types.Purchase) {
+		ct, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 
-		err := s.emailer.SendPurchaseConfirmation(c, *p)
+		err := s.emailer.SendPurchaseConfirmation(ct, *p)
 		if err != nil {
 			s.logger.Warn(
 				"Failed to send the email purchase confirmation",
@@ -142,7 +142,7 @@ func (s *service) Create(
 		}
 
 		s.logger.Info("New purchase received and email send! ")
-	}(ctx, purchase)
+	}(purchase)
 
 	return nil
 }
