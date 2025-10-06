@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"io/fs"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"rifa/backend/internal/core/spa"
 	"rifa/backend/pkg/config"
 	"rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
@@ -45,7 +45,7 @@ type HttpServerOptions struct {
 	// I18nBundle *I18nBundle
 
 	// Logger is used for server-related logging
-	Logger *slog.Logger
+	Logger logx.Logger
 
 	// ServerOpts specifies the server config options
 	ServerOpts config.ServerOpts
@@ -66,7 +66,7 @@ type HttpServer struct {
 	*chi.Mux
 	*http.Server
 	APIDocs []huma.API
-	logger  *slog.Logger
+	logger  logx.Logger
 }
 
 func NewHttpServer(
@@ -91,7 +91,7 @@ func NewHttpServer(
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	apiConfig.CreateHooks = nil
 	humaApi := humachi.New(router, apiConfig)
-	api.RegisterHttpRoutes(humaApi, db, opts.ServiceOpts)
+	api.RegisterHttpRoutes(humaApi, db, opts.Logger, opts.ServiceOpts)
 
 	router.Get("/", spa.SpaHandler(front))
 	router.NotFound(spa.SpaHandler(front))

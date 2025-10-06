@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
@@ -12,14 +11,20 @@ import (
 	ticket "rifa/backend/internal/core/tickets"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 	"rifa/backend/pkg/utils"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
-	srv := ticket.NewService(db)
+func RegisterTicketsRoutes(
+	api huma.API,
+	db database.DB,
+	logger logx.Logger,
+	opts config.ServiceOpts,
+) {
+	srv := ticket.NewService(db, logger)
 
 	huma.Register(
 		api,
@@ -36,9 +41,8 @@ func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts
 		) (*dto.PercentageOfTicketsSoldOutput, error) {
 			percentage, err := srv.GetAvailability(ctx)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
-					"Failed to get percentage",
+					"Failed to get sold tickets percentage",
 				)
 			}
 
@@ -67,7 +71,7 @@ func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts
 			stringTickets := strings.Split(input.Tickets, ",")
 			tickets, err := utils.ConvertToIntSlice(stringTickets)
 			if err != nil {
-				log.Println(err)
+				logger.Warn("Invalid ticket numbers", "error", err)
 				return nil, huma.Error400BadRequest(
 					"Numeros mal formateados",
 				)
@@ -75,7 +79,6 @@ func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts
 
 			unavailableTickets, err := srv.SearchTickets(ctx, tickets)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Failed to get purchases",
 				)
@@ -110,6 +113,7 @@ func RegisterTicketsRoutes(api huma.API, db database.DB, opts config.ServiceOpts
 		) (*dto.UserTicketsOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
+				logger.Warn("Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 
