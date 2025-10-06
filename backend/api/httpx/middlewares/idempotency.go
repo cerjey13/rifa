@@ -105,6 +105,7 @@ func IdempotencyMiddleware(
 		contentType := ctx.Header("Content-Type")
 		if !strings.HasPrefix(contentType, "multipart/form-data") {
 			logger.Warn(
+				ctx.Context(),
 				"Invalid Content-Type for idempotent endpoint",
 				"type",
 				contentType,
@@ -121,7 +122,7 @@ func IdempotencyMiddleware(
 
 		boundary := boundaryFromContentType(contentType)
 		if boundary == "" {
-			logger.Warn("Missing multipart boundary")
+			logger.Warn(ctx.Context(), "Missing multipart boundary")
 			_ = huma.WriteErr(
 				api,
 				ctx,
@@ -135,7 +136,12 @@ func IdempotencyMiddleware(
 		r, _ := humachi.Unwrap(ctx)
 		bodyBytes, err := io.ReadAll(io.LimitReader(r.Body, maxFileBytes))
 		if err != nil {
-			logger.Error("Failed to read request body", "error", err)
+			logger.Error(
+				ctx.Context(),
+				"Failed to read request body",
+				"error",
+				err,
+			)
 			_ = huma.WriteErr(
 				api,
 				ctx,
@@ -155,7 +161,12 @@ func IdempotencyMiddleware(
 				break
 			}
 			if err != nil {
-				logger.Error("Failed to read multipart body", "error", err)
+				logger.Error(
+					ctx.Context(),
+					"Failed to read multipart body",
+					"error",
+					err,
+				)
 				_ = huma.WriteErr(
 					api,
 					ctx,
@@ -171,6 +182,7 @@ func IdempotencyMiddleware(
 				closeErr := part.Close()
 				if closeErr != nil {
 					logger.Warn(
+						ctx.Context(),
 						"Failed to close file part",
 						"field",
 						name,
@@ -184,6 +196,7 @@ func IdempotencyMiddleware(
 			data, readErr := io.ReadAll(part)
 			if closeErr := part.Close(); closeErr != nil {
 				logger.Warn(
+					ctx.Context(),
 					"Failed to close form field part",
 					"field",
 					name,
@@ -193,6 +206,7 @@ func IdempotencyMiddleware(
 			}
 			if readErr != nil {
 				logger.Error(
+					ctx.Context(),
 					"Failed to read form field",
 					"field",
 					name,
@@ -214,7 +228,12 @@ func IdempotencyMiddleware(
 
 		cleanBody, err := json.Marshal(formValues)
 		if err != nil {
-			logger.Error("Failed to re-marshal cleaned JSON", "error", err)
+			logger.Error(
+				ctx.Context(),
+				"Failed to re-marshal cleaned JSON",
+				"error",
+				err,
+			)
 			_ = huma.WriteErr(
 				api,
 				ctx,
@@ -233,6 +252,7 @@ func IdempotencyMiddleware(
 		if err == nil {
 			if rec.BodyHash != bodyHash {
 				logger.Warn(
+					ctx.Context(),
 					"Idempotency key reused with different payload",
 					"key",
 					key,
@@ -246,11 +266,12 @@ func IdempotencyMiddleware(
 				)
 				return
 			}
-			logger.Info("Idempotent replay detected", "key", key)
+			logger.Info(ctx.Context(), "Idempotent replay detected", "key", key)
 			ctx.SetStatus(rec.StatusCode)
 			_, writeErr := ctx.BodyWriter().Write(rec.ResponseBody)
 			if writeErr != nil {
 				logger.Error(
+					ctx.Context(),
 					"Failed to write cached response body",
 					"key",
 					key,
@@ -279,6 +300,7 @@ func IdempotencyMiddleware(
 		)
 		if saveErr != nil {
 			logger.Error(
+				ctx.Context(),
 				"Failed to persist idempotency record",
 				"key",
 				key,
@@ -287,6 +309,7 @@ func IdempotencyMiddleware(
 			)
 		} else {
 			logger.Info(
+				ctx.Context(),
 				"Stored new idempotency record",
 				"key",
 				key,

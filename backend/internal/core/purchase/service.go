@@ -57,7 +57,9 @@ func (s *service) Create(
 ) error {
 	compressedScreenshot, err := utils.CompressToJPG(req.PaymentScreenshot)
 	if err != nil {
-		s.logger.Error("Failed to compress payment image",
+		s.logger.Error(
+			ctx,
+			"Failed to compress payment image",
 			"user_id",
 			req.UserID,
 			"error",
@@ -80,7 +82,9 @@ func (s *service) Create(
 
 	purchaseID, err := s.repo.Create(ctx, purchase)
 	if err != nil {
-		s.logger.Error("Failed to create the purchase order",
+		s.logger.Error(
+			ctx,
+			"Failed to create the purchase order",
 			"user_id",
 			req.UserID,
 			"error",
@@ -91,7 +95,9 @@ func (s *service) Create(
 
 	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get active lottery",
+		s.logger.Error(
+			ctx,
+			"Failed to get active lottery",
 			"user_id",
 			req.UserID,
 			"purchase_id",
@@ -112,6 +118,7 @@ func (s *service) Create(
 	)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to create purchase tickets",
 			"user_id",
 			req.UserID,
@@ -130,6 +137,7 @@ func (s *service) Create(
 		err := s.emailer.SendPurchaseConfirmation(ct, *p)
 		if err != nil {
 			s.logger.Warn(
+				ctx,
 				"Failed to send the email purchase confirmation",
 				"user_id",
 				req.UserID,
@@ -141,7 +149,7 @@ func (s *service) Create(
 			return
 		}
 
-		s.logger.Info("New purchase received and email send! ")
+		s.logger.Info(ct, "New purchase received and email send!")
 	}(purchase)
 
 	return nil
@@ -153,7 +161,9 @@ func (s *service) GetAll(
 ) ([]form.Purchases, int, error) {
 	purchases, total, err := s.repo.GetAll(ctx, filters)
 	if err != nil {
-		s.logger.Error("Failed to get all purchases",
+		s.logger.Error(
+			ctx,
+			"Failed to get all purchases",
 			"page",
 			filters.Page,
 			"error",
@@ -173,6 +183,7 @@ func (s *service) UpdateStatus(
 	err := s.repo.UpdateStatus(ctx, purchaseID, status)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to update purchase",
 			"purchase",
 			purchaseID,
@@ -193,7 +204,9 @@ func (s *service) GetLeaderboard(
 ) ([]form.MostPurchases, error) {
 	leaderboard, err := s.repo.GetLeaderboard(ctx, filters)
 	if err != nil {
-		s.logger.Error("Failed to get purchases leaderboard",
+		s.logger.Error(
+			ctx,
+			"Failed to get purchases leaderboard",
 			"page",
 			filters.Page,
 			"error",
@@ -211,13 +224,14 @@ func (s *service) FindUserPurchasesByTicket(
 ) (form.SearchResult, error) {
 	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get active lottery", "error", err)
+		s.logger.Error(ctx, "Failed to get active lottery", "error", err)
 		return form.SearchResult{}, err
 	}
 
 	user, err := s.repo.FindUserPurchasesByTicket(ctx, lotteryID, ticketNumber)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to find user purchases by ticket number",
 			"ticket",
 			ticketNumber,

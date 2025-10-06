@@ -53,6 +53,7 @@ func (s *service) BuyTickets(
 	)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to purchase tickets",
 			"user",
 			userID,
@@ -71,13 +72,14 @@ func (s *service) SearchTickets(
 ) ([]int, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get active lottery", "error", err)
+		s.logger.Error(ctx, "Failed to get active lottery", "error", err)
 		return nil, err
 	}
 
 	numbers, err := s.repo.GetUnavailableNumbers(ctx, lotteryID, tickets)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to check if the selected numbers are unavailable",
 			"error",
 			err,
@@ -91,13 +93,14 @@ func (s *service) SearchTickets(
 func (s *service) GetAvailability(ctx context.Context) (float64, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get active lottery", "error", err)
+		s.logger.Error(ctx, "Failed to get active lottery", "error", err)
 		return 0, err
 	}
 
 	percentage, err := s.repo.GetAvailabilityPercentage(ctx, lotteryID)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to get available tickets percentage",
 			"error",
 			err,
@@ -114,13 +117,14 @@ func (s *service) GetUserTickets(
 ) ([]int, error) {
 	lotteryID, err := s.repo.GetActiveLotteryID(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get active lottery", "error", err)
+		s.logger.Error(ctx, "Failed to get active lottery", "error", err)
 		return nil, err
 	}
 
 	userTickets, err := s.repo.GetUserTickets(ctx, userID, lotteryID)
 	if err != nil {
 		s.logger.Error(
+			ctx,
 			"Failed to retrieve user buyed tickets",
 			"user",
 			userID,

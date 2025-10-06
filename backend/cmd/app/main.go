@@ -78,30 +78,50 @@ func main() {
 		},
 	)
 	if err != nil {
-		logger.Error("Failed to configure server", "err", err)
+		logger.Error(
+			signalCtx,
+			"Failed to configure server",
+			"error",
+			err,
+		)
 		os.Exit(1)
 	}
 
 	go func() {
-		logger.Info("Rifa backend listening", "port", cfg.Server.Port)
+		logger.Info(
+			signalCtx,
+			"Rifa backend listening",
+			"port",
+			cfg.Server.Port,
+		)
 		err := server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			logger.Error("HTTP server error", "err", err)
+			logger.Error(
+				signalCtx,
+				"HTTP server error",
+				"error",
+				err,
+			)
 			cancelSignal()
 		}
 	}()
 
 	<-signalCtx.Done()
-	logger.Info("Shutting down gracefully...")
+	logger.Info(signalCtx, "Shutting down gracefully...")
 
 	shutdownCtx, cancel := context.WithTimeout(
-		ctx,
+		signalCtx,
 		10*time.Second,
 	)
 	defer cancel()
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error("Server forced to shutdown", "err", err)
+		logger.Error(
+			signalCtx,
+			"Server forced to shutdown",
+			"error",
+			err,
+		)
 	}
 
-	logger.Info("Server exited cleanly")
+	logger.Info(signalCtx, "Server exited cleanly")
 }
