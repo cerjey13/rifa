@@ -31,7 +31,7 @@ func RegisterAuthRoutes(
 			OperationID:   "register",
 			Method:        http.MethodPost,
 			Path:          "/api/register",
-			Summary:       "register a user",
+			Summary:       "User register",
 			DefaultStatus: http.StatusCreated,
 		},
 		func(
@@ -57,6 +57,7 @@ func RegisterAuthRoutes(
 			OperationID:   "login",
 			Method:        http.MethodPost,
 			Path:          "/api/login",
+			Summary:       "User Login",
 			DefaultStatus: http.StatusOK,
 		},
 		func(
@@ -94,7 +95,7 @@ func RegisterAuthRoutes(
 			OperationID: "me",
 			Method:      http.MethodGet,
 			Path:        "/api/me",
-			Summary:     "check current user session",
+			Summary:     "Check current user session",
 			Middlewares: huma.Middlewares{
 				mymiddlewares.RequireSession(api, opts.JwtOpts),
 			},

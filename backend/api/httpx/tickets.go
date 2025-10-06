@@ -32,7 +32,7 @@ func RegisterTicketsRoutes(
 			OperationID:   "ticketsPercentage",
 			Method:        http.MethodGet,
 			Path:          "/api/tickets/percentage",
-			Summary:       "percentage of tickets sold",
+			Summary:       "Percentage of tickets sold",
 			DefaultStatus: http.StatusOK,
 		},
 		func(
@@ -98,7 +98,7 @@ func RegisterTicketsRoutes(
 	huma.Register(
 		api,
 		huma.Operation{
-			OperationID: "list user purchases",
+			OperationID: "userPurchases",
 			Method:      http.MethodGet,
 			Path:        "/api/tickets/users",
 			Summary:     "Get purchases for a user",
