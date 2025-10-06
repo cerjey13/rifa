@@ -80,8 +80,13 @@ func NewHttpServer(
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
 	if !opts.ServerOpts.Docs {
-		apiConfig.CreateHooks = nil
 		apiConfig.DocsPath = ""
+		apiConfig.OpenAPIPath = ""
+		opts.Logger.Info(
+			"OpenAPI docs disabled",
+			"env",
+			opts.ServerOpts.Env,
+		)
 	}
 	humaApi := humachi.New(router, apiConfig)
 	api.RegisterHttpRoutes(humaApi, db, opts.Logger, opts.ServiceOpts)
