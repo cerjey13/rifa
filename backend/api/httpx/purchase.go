@@ -159,7 +159,7 @@ func RegisterPurchaseRoutes(
 		OperationID: "leaderboard",
 		Method:      http.MethodGet,
 		Path:        "/api/purchases/leaderboard",
-		Summary:     "List purchases by user with the most buyed",
+		Summary:     "List purchases by user with the most buyed (admin only)",
 		Middlewares: huma.Middlewares{
 			mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 		},

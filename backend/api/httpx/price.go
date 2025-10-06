@@ -29,7 +29,7 @@ func RegisterPriceRoutes(
 			OperationID:   "prices",
 			Method:        http.MethodGet,
 			Path:          "/api/prices",
-			Summary:       "get the prices amounts",
+			Summary:       "Get the prices amounts",
 			DefaultStatus: http.StatusOK,
 		},
 		func(
@@ -58,7 +58,7 @@ func RegisterPriceRoutes(
 			OperationID: "updatePrices",
 			Method:      http.MethodPatch,
 			Path:        "/api/prices",
-			Summary:     "update the prices values",
+			Summary:     "Update the prices values",
 			Middlewares: huma.Middlewares{
 				mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 			},

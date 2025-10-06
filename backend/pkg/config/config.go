@@ -18,6 +18,7 @@ type ServerOpts struct {
 	Port     string `env:"PORT" envDefault:"8080"`
 	Host     string `env:"HOST" envDefault:"0.0.0.0"`
 	Env      string `env:"APP_ENV" envDefault:"development"`
+	Docs     bool   `env:"DOCS" envDefault:"false"`
 	TimeOuts struct {
 		Write      time.Duration `env:"WRITE_TIMEOUT" envDefault:"30s"`
 		Read       time.Duration `env:"READ_TIMEOUT" envDefault:"10s"`

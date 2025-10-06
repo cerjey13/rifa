@@ -1,7 +1,7 @@
 package core
 
 import (
-	"fmt"
+	"errors"
 	"io/fs"
 	"net/http"
 	"time"
@@ -35,15 +35,6 @@ type FS interface {
 
 // HttpServerOptions contains configuration options for the HTTP server
 type HttpServerOptions struct {
-	// ApiDocs is a list of API documentation to be served
-	ApiDocs []huma.API
-
-	// Mode specifies the application mode (debug/release)
-	// Mode types.Mode
-
-	// I18nBundle is used for internationalization
-	// I18nBundle *I18nBundle
-
 	// Logger is used for server-related logging
 	Logger logx.Logger
 
@@ -65,8 +56,7 @@ type HttpServerOptions struct {
 type HttpServer struct {
 	*chi.Mux
 	*http.Server
-	APIDocs []huma.API
-	logger  logx.Logger
+	logger logx.Logger
 }
 
 func NewHttpServer(
@@ -75,7 +65,7 @@ func NewHttpServer(
 	opts HttpServerOptions,
 ) (*HttpServer, error) {
 	if opts.Logger == nil {
-		return nil, fmt.Errorf("logger is required")
+		return nil, errors.New("logger is required")
 	}
 
 	router := chi.NewRouter()
@@ -89,7 +79,10 @@ func NewHttpServer(
 	router.Use(otelchi.Middleware("rifa", otelchi.WithChiRoutes(router)))
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
-	apiConfig.CreateHooks = nil
+	if !opts.ServerOpts.Docs {
+		apiConfig.CreateHooks = nil
+		apiConfig.DocsPath = ""
+	}
 	humaApi := humachi.New(router, apiConfig)
 	api.RegisterHttpRoutes(humaApi, db, opts.Logger, opts.ServiceOpts)
 
@@ -106,7 +99,6 @@ func NewHttpServer(
 			ReadHeaderTimeout: opts.ServerOpts.TimeOuts.ReadHeader,
 			IdleTimeout:       opts.ServerOpts.TimeOuts.Idle,
 		},
-		opts.ApiDocs,
 		opts.Logger,
 	}
 
