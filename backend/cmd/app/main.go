@@ -6,8 +6,12 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"rifa/backend/internal/background"
 	"rifa/backend/internal/core"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
@@ -32,9 +36,11 @@ func main() {
 	}
 
 	driver := database.NewPostgresDriver()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	dbAdapter, err := database.Connect(ctx, driver, &cfg.Database)
+	ctx := context.Background()
+	dbCtx, cancelDb := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelDb()
+
+	dbAdapter, err := database.Connect(dbCtx, driver, &cfg.Database)
 	if err != nil {
 		log.Fatalf("failed to start the db: %v", err)
 	}
@@ -45,13 +51,22 @@ func main() {
 		log.Fatalf("collector init: %v", err)
 	}
 	defer func() {
-		err = shutdown(context.Background())
+		err = shutdown(ctx)
 		if err != nil {
 			log.Fatalf("failed to shutdown collector: %v", err)
 		}
 	}()
 
 	logger := logx.NewLogger(cfg.Server.Env)
+	signalCtx, cancelSignal := signal.NotifyContext(
+		ctx,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer cancelSignal()
+
+	background.StartIdempotencyCleanup(signalCtx, dbAdapter, logger)
+
 	front := http.FS(dist)
 	server, err := core.NewHttpServer(
 		dbAdapter,
@@ -63,9 +78,30 @@ func main() {
 		},
 	)
 	if err != nil {
-		log.Fatal("failed to config the server")
+		logger.Error("Failed to configure server", "err", err)
+		os.Exit(1)
 	}
 
-	log.Println("Rifa backend listening on :" + cfg.Server.Port)
-	log.Fatal(server.ListenAndServe())
+	go func() {
+		logger.Info("Rifa backend listening", "port", cfg.Server.Port)
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			logger.Error("HTTP server error", "err", err)
+			cancelSignal()
+		}
+	}()
+
+	<-signalCtx.Done()
+	logger.Info("Shutting down gracefully...")
+
+	shutdownCtx, cancel := context.WithTimeout(
+		ctx,
+		10*time.Second,
+	)
+	defer cancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Server forced to shutdown", "err", err)
+	}
+
+	logger.Info("Server exited cleanly")
 }

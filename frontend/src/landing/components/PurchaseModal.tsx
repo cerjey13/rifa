@@ -4,6 +4,7 @@ import { PaymentMethods } from './PaymentMethods';
 import { BuyForm } from './BuyForm';
 
 interface PurchaseModalProps {
+  userId: string;
   bs: number;
   usd: number;
   isOpen: boolean;
@@ -19,6 +20,7 @@ const steps = {
 type PurchaseSteps = (typeof steps)[keyof typeof steps];
 
 export const PurchaseModal = ({
+  userId,
   bs,
   usd,
   isOpen,
@@ -78,6 +80,7 @@ export const PurchaseModal = ({
         )}
         {step === steps.BUY_FORM && (
           <BuyForm
+            userId={userId}
             quantity={quantity}
             montoBs={montoBs}
             montoUSD={montoUSD}
