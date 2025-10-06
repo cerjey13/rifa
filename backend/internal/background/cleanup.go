@@ -16,7 +16,7 @@ func StartIdempotencyCleanup(
 	ticker := time.NewTicker(time.Hour)
 	go func() {
 		defer ticker.Stop()
-		logger.Info("Started idempotency cleanup worker")
+		logger.Info(ctx, "Started idempotency cleanup worker")
 
 		for {
 			select {
@@ -29,11 +29,16 @@ func StartIdempotencyCleanup(
 					`DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`,
 				)
 				if err != nil {
-					logger.Error("Failed to cleanup idempotency_keys", "err", err)
+					logger.Error(
+						ctx,
+						"Failed to cleanup idempotency_keys",
+						"err",
+						err,
+					)
 				}
 
 			case <-ctx.Done():
-				logger.Info("Stopping idempotency cleanup worker")
+				logger.Info(ctx, "Stopping idempotency cleanup worker")
 				return
 			}
 		}

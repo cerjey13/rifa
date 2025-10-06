@@ -30,7 +30,7 @@ func NewService(db database.DB, logger logx.Logger) Service {
 func (s *service) GetPrices(ctx context.Context) (types.Prices, error) {
 	prices, err := s.repo.GetLatestPrices(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get latest prices", "error", err)
+		s.logger.Error(ctx, "Failed to get latest prices", "error", err)
 		return types.Prices{}, err
 	}
 	return prices, nil
@@ -39,6 +39,7 @@ func (s *service) GetPrices(ctx context.Context) (types.Prices, error) {
 func (s *service) Update(ctx context.Context, bs, usd float64) error {
 	if bs <= 0 || usd <= 0 {
 		s.logger.Warn(
+			ctx,
 			"Attempt to update prices with non-positive values",
 			"bs",
 			bs,
@@ -50,10 +51,10 @@ func (s *service) Update(ctx context.Context, bs, usd float64) error {
 
 	err := s.repo.Save(ctx, types.Prices{BsAmount: bs, UsdAmount: usd})
 	if err != nil {
-		s.logger.Error("Failed to save prices data into the db", "error", err)
+		s.logger.Error(ctx, "Failed to save prices data into the db", "error", err)
 		return err
 	}
 
-	s.logger.Info("Updated prices successfully", "bs", bs, "usd", usd)
+	s.logger.Info(ctx, "Updated prices successfully", "bs", bs, "usd", usd)
 	return nil
 }

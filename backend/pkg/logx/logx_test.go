@@ -2,6 +2,7 @@ package logx
 
 import (
 	"bytes"
+	"context"
 	"log/slog"
 	"strings"
 	"testing"
@@ -18,7 +19,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 			name: "debug in dev",
 			env:  "dev",
 			logFunc: func(l Logger) {
-				l.Debug("debug message", "key", "value")
+				l.Debug(context.Background(), "debug message", "key", "value")
 			},
 			expected: "debug message",
 		},
@@ -26,7 +27,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 			name: "info in dev",
 			env:  "dev",
 			logFunc: func(l Logger) {
-				l.Info("info message", "key", "value")
+				l.Info(context.Background(), "info message", "key", "value")
 			},
 			expected: "info message",
 		},
@@ -34,7 +35,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 			name: "warn in dev",
 			env:  "dev",
 			logFunc: func(l Logger) {
-				l.Warn("warn message", "key", "value")
+				l.Warn(context.Background(), "warn message", "key", "value")
 			},
 			expected: "warn message",
 		},
@@ -42,7 +43,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 			name: "error in dev",
 			env:  "dev",
 			logFunc: func(l Logger) {
-				l.Error("error message", "key", "value")
+				l.Error(context.Background(), "error message", "key", "value")
 			},
 			expected: "error message",
 		},
@@ -50,7 +51,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 			name: "json format in production",
 			env:  "production",
 			logFunc: func(l Logger) {
-				l.Info("json message", "key", "value")
+				l.Info(context.Background(), "json message", "key", "value")
 			},
 			expected: `"msg":"json message"`,
 		},
@@ -61,7 +62,6 @@ func TestSlogLoggerLevels(t *testing.T) {
 			var buf bytes.Buffer
 			var handler slog.Handler
 
-			// replace os.Stdout with our buffer for testing
 			if tt.env == "production" {
 				handler = slog.NewJSONHandler(&buf, nil)
 			} else {
@@ -71,7 +71,7 @@ func TestSlogLoggerLevels(t *testing.T) {
 				)
 			}
 
-			logger := &slogLogger{l: slog.New(handler)}
+			logger := &logger{base: slog.New(handler)}
 
 			tt.logFunc(logger)
 

@@ -71,7 +71,7 @@ func RegisterTicketsRoutes(
 			stringTickets := strings.Split(input.Tickets, ",")
 			tickets, err := utils.ConvertToIntSlice(stringTickets)
 			if err != nil {
-				logger.Warn("Invalid ticket numbers", "error", err)
+				logger.Warn(ctx, "Invalid ticket numbers", "error", err)
 				return nil, huma.Error400BadRequest(
 					"Numeros mal formateados",
 				)
@@ -113,7 +113,7 @@ func RegisterTicketsRoutes(
 		) (*dto.UserTicketsOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
-				logger.Warn("Missing sesion claims")
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 

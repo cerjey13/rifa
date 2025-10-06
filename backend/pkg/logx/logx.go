@@ -1,28 +1,50 @@
 package logx
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"runtime"
 	"strconv"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Logger is a minimal interface for structured logging.
 type Logger interface {
-	Debug(msg string, args ...any)
-	Info(msg string, args ...any)
-	Warn(msg string, args ...any)
-	Error(msg string, args ...any)
+	Debug(ctx context.Context, msg string, args ...any)
+	Info(ctx context.Context, msg string, args ...any)
+	Warn(ctx context.Context, msg string, args ...any)
+	Error(ctx context.Context, msg string, args ...any)
 }
 
-type slogLogger struct {
-	l *slog.Logger
+type logger struct {
+	base *slog.Logger
 }
 
-func (s *slogLogger) Debug(msg string, args ...any) { s.l.Debug(msg, args...) }
-func (s *slogLogger) Info(msg string, args ...any)  { s.l.Info(msg, args...) }
-func (s *slogLogger) Warn(msg string, args ...any)  { s.l.Warn(msg, args...) }
-func (s *slogLogger) Error(msg string, args ...any) { s.l.Error(msg, args...) }
+func (s *logger) Debug(ctx context.Context, msg string, args ...any) {
+	s.base.Debug(msg, enrichWithTrace(ctx, args)...)
+}
+func (s *logger) Info(ctx context.Context, msg string, args ...any) {
+	s.base.Info(msg, enrichWithTrace(ctx, args)...)
+}
+func (s *logger) Warn(ctx context.Context, msg string, args ...any) {
+	s.base.Warn(msg, enrichWithTrace(ctx, args)...)
+}
+func (s *logger) Error(ctx context.Context, msg string, args ...any) {
+	s.base.Error(msg, enrichWithTrace(ctx, args)...)
+}
+
+func enrichWithTrace(ctx context.Context, args []any) []any {
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanCtx.IsValid() {
+		args = append(args,
+			"trace_id", spanCtx.TraceID().String(),
+			"span_id", spanCtx.SpanID().String(),
+		)
+	}
+	return args
+}
 
 func NewLogger(env string) Logger {
 	var handler slog.Handler
@@ -46,5 +68,5 @@ func NewLogger(env string) Logger {
 		})
 	}
 
-	return &slogLogger{l: slog.New(handler)}
+	return &logger{base: slog.New(handler)}
 }

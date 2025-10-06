@@ -104,7 +104,7 @@ func RegisterAuthRoutes(
 		func(ctx context.Context, _ *struct{}) (*dto.MeOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
-				logger.Warn("Missing sesion claims")
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 
@@ -135,11 +135,16 @@ func RegisterAuthRoutes(
 		func(ctx context.Context, _ *struct{}) (*dto.LogoutOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
-				logger.Warn("Missing sesion claims")
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 
-			logger.Info("user logged out", "email", claims["email"].(string))
+			logger.Info(
+				ctx,
+				"user logged out",
+				"email",
+				claims["email"].(string),
+			)
 			return &dto.LogoutOutput{
 				ClearCookie: http.Cookie{
 					Name:     "session",

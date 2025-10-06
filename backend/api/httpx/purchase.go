@@ -62,13 +62,14 @@ func RegisterPurchaseRoutes(
 		) (*dto.PurchaseOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
-				logger.Warn("Missing sesion claims")
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 
 			formData := input.RawBody.Data()
 			if formData.ScreenShot.Size > maxFileBytes {
 				logger.Warn(
+					ctx,
 					"Purchase image too large",
 					"user_id",
 					claims["id"],
@@ -87,6 +88,7 @@ func RegisterPurchaseRoutes(
 			screenshot, err := io.ReadAll(r)
 			if err != nil {
 				logger.Error(
+					ctx,
 					"Failed to read uploaded screenshot",
 					"user_id",
 					claims["id"],

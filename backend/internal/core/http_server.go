@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"errors"
 	"io/fs"
 	"net/http"
@@ -83,6 +84,7 @@ func NewHttpServer(
 		apiConfig.DocsPath = ""
 		apiConfig.OpenAPIPath = ""
 		opts.Logger.Info(
+			context.Background(),
 			"OpenAPI docs disabled",
 			"env",
 			opts.ServerOpts.Env,
