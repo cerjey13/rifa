@@ -97,7 +97,11 @@ func (s *service) GetAvailability(ctx context.Context) (float64, error) {
 
 	percentage, err := s.repo.GetAvailabilityPercentage(ctx, lotteryID)
 	if err != nil {
-		s.logger.Error("Failed to get")
+		s.logger.Error(
+			"Failed to get available tickets percentage",
+			"error",
+			err,
+		)
 		return 0, err
 	}
 

@@ -179,7 +179,8 @@ func (s *service) UpdateStatus(
 			"updated status",
 			status,
 			"error",
-			err)
+			err,
+		)
 		return err
 	}
 
