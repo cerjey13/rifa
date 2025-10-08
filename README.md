@@ -1,23 +1,27 @@
 # 🎟️ Rifa
 
-[Rifa](https://suerteconsarah.com) is a raffle platform built with a modern full-stack architecture in **Go** (backend) and **TypeScript/React** (frontend).  
+[Rifa](https://suerteconsarah.com) is a raffle platform built with a modern full-stack architecture in **Go** (backend), **TypeScript/React** (frontend) and **Prometheus/Grafana** (monitoring).
 It allows users to purchase raffle tickets, manage payments, and view results in a simple and transparent way.
 
 ---
 
 ## 🚀 Features
 
-- ✨ Full-stack app with **Go + Huma + Chi** backend and **React + Vite** frontend
+- ✨ Full-stack app with **Go + Huma + Chi** backend and **React + Vite + TailwindCss** frontend
 - 💳 Ticket purchasing & payment management
 - 🐳 Dockerized for easy deployment
 - ✅ Unit tests & GitHub Actions CI/CD
+- 📊 OpenTelemetry tracing and Prometheus metrics
+- 🪶 Idempotent request middleware
+- 🧩 Background job system for async processing
+- 🧾 Structured logger and graceful shutdown
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Backend:** Go (Chi, PostgreSQL)
-- **Frontend:** React, TypeScript, Vite
+- **Frontend:** React, TypeScript, Vite, TailwindCSS
 - **Database:** PostgreSQL
 - **CI/CD:** GitHub Actions + Railway deployment
 - **Containerization:** Docker
@@ -30,6 +34,7 @@ It allows users to purchase raffle tickets, manage payments, and view results in
 .
 ├── backend/         # Go backend (Huma, Chi, PostgreSQL)
 ├── frontend/        # React + TypeScript frontend (Vite)
+├── monitoring/      # OpenTelemetry + Prometheus + Loki + Tempo + Grafana configuration
 ├── .github/         # GitHub Actions workflows
 ├── Dockerfile       # Containerization setup
 ├── LICENSE
@@ -86,6 +91,7 @@ JWT_SECRET=choose-a-strong-secret
 COOKIE_SECURE=true
 ENV=development
 EMAIL_ACCOUNT=email@example.com
+OTEL_EXPORTER_OTLP_ENDPOINT=localhost:4318
 ```
 
 #### Frontend
@@ -111,6 +117,20 @@ cd backend && go test ./...
 ```bash
 cd frontend && pnpm test
 ```
+
+---
+
+## 🧩 Monitoring
+
+1. **Start Prometheus and Grafana**
+   ```bash
+   cd monitoring
+   docker compose up -d
+   ```
+1. **Prometheus scrapes your backend on port 4318**
+1. **Grafana available at localhost:3000 (login: admin/admin)**
+
+---
 
 ## 🚀 Deployment
 

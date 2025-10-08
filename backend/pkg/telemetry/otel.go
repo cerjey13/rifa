@@ -29,7 +29,8 @@ func InitCollector(
 		return func(context.Context) error { return nil }, nil
 	}
 
-	res, err := resource.New(ctx,
+	res, err := resource.New(
+		ctx,
 		resource.WithAttributes(
 			semconv.ServiceName("rifa-backend"),
 			attribute.String("deployment.environment", opts.CollectorEnv),
@@ -44,7 +45,8 @@ func InitCollector(
 		headers = ParseKeyValueList(hv)
 	}
 
-	traceExp, err := otlptracehttp.New(ctx,
+	traceExp, err := otlptracehttp.New(
+		ctx,
 		otlptracehttp.WithEndpoint(opts.CollectorExporter),
 		otlptracehttp.WithHeaders(headers),
 		otlptracehttp.WithInsecure(),
@@ -58,7 +60,8 @@ func InitCollector(
 		sdktrace.WithBatcher(traceExp),
 	)
 
-	metricExp, err := otlpmetrichttp.New(ctx,
+	metricExp, err := otlpmetrichttp.New(
+		ctx,
 		otlpmetrichttp.WithEndpoint(opts.CollectorExporter),
 		otlpmetrichttp.WithHeaders(headers),
 		otlpmetrichttp.WithInsecure(),

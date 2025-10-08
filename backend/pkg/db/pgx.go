@@ -27,7 +27,7 @@ func (postgresDriver) Open(ctx context.Context, conn string) (DB, error) {
 		pool.Close()
 		return nil, err
 	}
-	// Wrap pool with the adapter so callers use DB interface
+
 	return NewPGX(pool), nil
 }
 
@@ -37,7 +37,11 @@ type PGXPool struct {
 
 func NewPGX(pool *pgxpool.Pool) *PGXPool { return &PGXPool{Pool: pool} }
 
-func (p *PGXPool) Query(ctx context.Context, q string, args ...any) (Rows, error) {
+func (p *PGXPool) Query(
+	ctx context.Context,
+	q string,
+	args ...any,
+) (Rows, error) {
 	return p.Pool.Query(ctx, q, args...)
 }
 
@@ -64,7 +68,11 @@ func (p *PGXPool) Close() {
 
 type pgxTx struct{ tx pgx.Tx }
 
-func (t *pgxTx) Query(ctx context.Context, q string, args ...any) (Rows, error) {
+func (t *pgxTx) Query(
+	ctx context.Context,
+	q string,
+	args ...any,
+) (Rows, error) {
 	return t.tx.Query(ctx, q, args...)
 }
 
@@ -77,5 +85,7 @@ func (t *pgxTx) ExecContext(ctx context.Context, q string, args ...any) error {
 	return err
 }
 
-func (t *pgxTx) Commit(ctx context.Context) error   { return t.tx.Commit(ctx) }
-func (t *pgxTx) Rollback(ctx context.Context) error { return t.tx.Rollback(ctx) }
+func (t *pgxTx) Commit(ctx context.Context) error { return t.tx.Commit(ctx) }
+func (t *pgxTx) Rollback(ctx context.Context) error {
+	return t.tx.Rollback(ctx)
+}
