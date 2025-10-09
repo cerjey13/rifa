@@ -2,7 +2,6 @@ package httpx
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -12,13 +11,19 @@ import (
 	"rifa/backend/internal/core/auth"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
-	srv := auth.NewAuthService(db, opts)
+func RegisterAuthRoutes(
+	api huma.API,
+	db database.DB,
+	logger logx.Logger,
+	opts config.ServiceOpts,
+) {
+	srv := auth.NewAuthService(db, logger, opts)
 
 	huma.Register(
 		api,
@@ -26,7 +31,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 			OperationID:   "register",
 			Method:        http.MethodPost,
 			Path:          "/api/register",
-			Summary:       "register a user",
+			Summary:       "User register",
 			DefaultStatus: http.StatusCreated,
 		},
 		func(
@@ -35,7 +40,6 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 		) (*dto.RegisterOutput, error) {
 			err := srv.Register(ctx, &input.Body)
 			if err != nil {
-				log.Printf("failed to register %v", err)
 				return nil, huma.Error400BadRequest(
 					"Ocurrio un error tratando de registrar al usuario",
 				)
@@ -53,6 +57,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 			OperationID:   "login",
 			Method:        http.MethodPost,
 			Path:          "/api/login",
+			Summary:       "User Login",
 			DefaultStatus: http.StatusOK,
 		},
 		func(
@@ -90,7 +95,7 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 			OperationID: "me",
 			Method:      http.MethodGet,
 			Path:        "/api/me",
-			Summary:     "check current user session",
+			Summary:     "Check current user session",
 			Middlewares: huma.Middlewares{
 				mymiddlewares.RequireSession(api, opts.JwtOpts),
 			},
@@ -99,13 +104,16 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 		func(ctx context.Context, _ *struct{}) (*dto.MeOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
-			output := &dto.MeOutput{}
-			output.Body = form.MeResponse{
-				Name:  claims["name"].(string),
-				Email: claims["email"].(string),
-				Role:  claims["role"].(string),
+
+			output := &dto.MeOutput{
+				Body: form.MeResponse{
+					Name:  claims["name"].(string),
+					Email: claims["email"].(string),
+					Role:  claims["role"].(string),
+				},
 			}
 
 			return output, nil
@@ -119,8 +127,24 @@ func RegisterAuthRoutes(api huma.API, db database.DB, opts config.ServiceOpts) {
 			Method:      http.MethodPost,
 			Path:        "/api/logout",
 			Summary:     "Logout user (expire session cookie)",
+			Middlewares: huma.Middlewares{
+				mymiddlewares.RequireSession(api, opts.JwtOpts),
+			},
+			DefaultStatus: http.StatusAccepted,
 		},
 		func(ctx context.Context, _ *struct{}) (*dto.LogoutOutput, error) {
+			claims, ok := ctx.Value("claims").(jwt.MapClaims)
+			if !ok {
+				logger.Warn(ctx, "Missing sesion claims")
+				return nil, huma.Error401Unauthorized("No session claims")
+			}
+
+			logger.Info(
+				ctx,
+				"user logged out",
+				"email",
+				claims["email"].(string),
+			)
 			return &dto.LogoutOutput{
 				ClearCookie: http.Cookie{
 					Name:     "session",

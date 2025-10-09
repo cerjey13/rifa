@@ -48,6 +48,7 @@ const Actions = ({ prices }: ActionsProps) => {
         </button>
 
         <PurchaseModal
+          userId={user ? user.id : ''}
           bs={prices && prices.montoBs ? prices.montoBs : MONTO_BS}
           usd={prices && prices.montoUsd ? prices.montoUsd : MONTO_USD}
           isOpen={purchaseModalOpen}

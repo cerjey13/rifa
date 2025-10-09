@@ -2,8 +2,6 @@ package purchase
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"time"
 
 	"rifa/backend/api/httpx/dto"
@@ -12,6 +10,7 @@ import (
 	"rifa/backend/internal/repository"
 	"rifa/backend/internal/types"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 	"rifa/backend/pkg/utils"
 )
 
@@ -35,13 +34,19 @@ type Service interface {
 type service struct {
 	repo       repository.PurchaseRepository
 	ticketRepo repository.TicketRepository
+	logger     logx.Logger
 	emailer    email.Mailer
 }
 
-func NewService(db database.DB, emailClient email.Mailer) Service {
+func NewService(
+	db database.DB,
+	logger logx.Logger,
+	emailClient email.Mailer,
+) Service {
 	return &service{
 		repo:       repository.NewPurchaseRepository(db),
 		ticketRepo: repository.NewTicketRepository(db),
+		logger:     logger,
 		emailer:    emailClient,
 	}
 }
@@ -52,6 +57,14 @@ func (s *service) Create(
 ) error {
 	compressedScreenshot, err := utils.CompressToJPG(req.PaymentScreenshot)
 	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to compress payment image",
+			"user_id",
+			req.UserID,
+			"error",
+			err,
+		)
 		return err
 	}
 
@@ -69,11 +82,29 @@ func (s *service) Create(
 
 	purchaseID, err := s.repo.Create(ctx, purchase)
 	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to create the purchase order",
+			"user_id",
+			req.UserID,
+			"error",
+			err,
+		)
 		return err
 	}
 
 	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
 	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to get active lottery",
+			"user_id",
+			req.UserID,
+			"purchase_id",
+			purchaseID,
+			"error",
+			err,
+		)
 		return err
 	}
 
@@ -86,16 +117,39 @@ func (s *service) Create(
 		req.Quantity,
 	)
 	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to create purchase tickets",
+			"user_id",
+			req.UserID,
+			"purchase_id",
+			purchaseID,
+			"error",
+			err,
+		)
 		return err
 	}
 
 	go func(p *types.Purchase) {
-		err := s.emailer.SendPurchaseConfirmation(*p)
+		ct, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		err := s.emailer.SendPurchaseConfirmation(ct, *p)
 		if err != nil {
-			log.Println(err)
-		} else {
-			fmt.Println("New purchase received and email send! ")
+			s.logger.Warn(
+				ctx,
+				"Failed to send the email purchase confirmation",
+				"user_id",
+				req.UserID,
+				"purchase_id",
+				purchaseID,
+				"error",
+				err,
+			)
+			return
 		}
+
+		s.logger.Info(ct, "New purchase received and email send!")
 	}(purchase)
 
 	return nil
@@ -105,7 +159,20 @@ func (s *service) GetAll(
 	ctx context.Context,
 	filters dto.GetAllPurchases,
 ) ([]form.Purchases, int, error) {
-	return s.repo.GetAll(ctx, filters)
+	purchases, total, err := s.repo.GetAll(ctx, filters)
+	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to get all purchases",
+			"page",
+			filters.Page,
+			"error",
+			err,
+		)
+		return nil, 0, err
+	}
+
+	return purchases, total, nil
 }
 
 func (s *service) UpdateStatus(
@@ -113,14 +180,42 @@ func (s *service) UpdateStatus(
 	purchaseID,
 	status string,
 ) error {
-	return s.repo.UpdateStatus(ctx, purchaseID, status)
+	err := s.repo.UpdateStatus(ctx, purchaseID, status)
+	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to update purchase",
+			"purchase",
+			purchaseID,
+			"updated status",
+			status,
+			"error",
+			err,
+		)
+		return err
+	}
+
+	return nil
 }
 
 func (s *service) GetLeaderboard(
 	ctx context.Context,
 	filters dto.GetMostPurchases,
 ) ([]form.MostPurchases, error) {
-	return s.repo.GetLeaderboard(ctx, filters)
+	leaderboard, err := s.repo.GetLeaderboard(ctx, filters)
+	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to get purchases leaderboard",
+			"page",
+			filters.Page,
+			"error",
+			err,
+		)
+		return nil, err
+	}
+
+	return leaderboard, nil
 }
 
 func (s *service) FindUserPurchasesByTicket(
@@ -129,11 +224,20 @@ func (s *service) FindUserPurchasesByTicket(
 ) (form.SearchResult, error) {
 	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
 	if err != nil {
+		s.logger.Error(ctx, "Failed to get active lottery", "error", err)
 		return form.SearchResult{}, err
 	}
 
 	user, err := s.repo.FindUserPurchasesByTicket(ctx, lotteryID, ticketNumber)
 	if err != nil {
+		s.logger.Error(
+			ctx,
+			"Failed to find user purchases by ticket number",
+			"ticket",
+			ticketNumber,
+			"error",
+			err,
+		)
 		return form.SearchResult{}, err
 	}
 

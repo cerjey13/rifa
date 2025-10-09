@@ -1,9 +1,9 @@
 package core
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"io/fs"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,6 +11,7 @@ import (
 	"rifa/backend/internal/core/spa"
 	"rifa/backend/pkg/config"
 	"rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
@@ -35,17 +36,8 @@ type FS interface {
 
 // HttpServerOptions contains configuration options for the HTTP server
 type HttpServerOptions struct {
-	// ApiDocs is a list of API documentation to be served
-	ApiDocs []huma.API
-
-	// Mode specifies the application mode (debug/release)
-	// Mode types.Mode
-
-	// I18nBundle is used for internationalization
-	// I18nBundle *I18nBundle
-
 	// Logger is used for server-related logging
-	Logger *slog.Logger
+	Logger logx.Logger
 
 	// ServerOpts specifies the server config options
 	ServerOpts config.ServerOpts
@@ -65,8 +57,7 @@ type HttpServerOptions struct {
 type HttpServer struct {
 	*chi.Mux
 	*http.Server
-	APIDocs []huma.API
-	logger  *slog.Logger
+	logger logx.Logger
 }
 
 func NewHttpServer(
@@ -75,7 +66,7 @@ func NewHttpServer(
 	opts HttpServerOptions,
 ) (*HttpServer, error) {
 	if opts.Logger == nil {
-		return nil, fmt.Errorf("logger is required")
+		return nil, errors.New("logger is required")
 	}
 
 	router := chi.NewRouter()
@@ -89,9 +80,18 @@ func NewHttpServer(
 	router.Use(otelchi.Middleware("rifa", otelchi.WithChiRoutes(router)))
 
 	apiConfig := huma.DefaultConfig("rifa", "1.0.0")
-	apiConfig.CreateHooks = nil
+	if !opts.ServerOpts.Docs {
+		apiConfig.DocsPath = ""
+		apiConfig.OpenAPIPath = ""
+		opts.Logger.Info(
+			context.Background(),
+			"OpenAPI docs disabled",
+			"env",
+			opts.ServerOpts.Env,
+		)
+	}
 	humaApi := humachi.New(router, apiConfig)
-	api.RegisterHttpRoutes(humaApi, db, opts.ServiceOpts)
+	api.RegisterHttpRoutes(humaApi, db, opts.Logger, opts.ServiceOpts)
 
 	router.Get("/", spa.SpaHandler(front))
 	router.NotFound(spa.SpaHandler(front))
@@ -106,7 +106,6 @@ func NewHttpServer(
 			ReadHeaderTimeout: opts.ServerOpts.TimeOuts.ReadHeader,
 			IdleTimeout:       opts.ServerOpts.TimeOuts.Idle,
 		},
-		opts.ApiDocs,
 		opts.Logger,
 	}
 

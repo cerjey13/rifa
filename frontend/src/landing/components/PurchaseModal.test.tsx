@@ -14,13 +14,27 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
 
   it('renders null when closed', () => {
     const { container } = render(
-      <PurchaseModal bs={100} usd={10} isOpen={false} onClose={() => {}} />,
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen={false}
+        onClose={() => {}}
+      />,
     );
     expect(container.firstChild).toBeNull();
   });
 
   it('flows Quantity -> PaymentMethods -> BuyForm with default qty (2)', async () => {
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={() => {}} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={() => {}}
+      />,
+    );
     // Step 1
     const next1 = screen.getByRole('button', { name: 'Siguiente' });
     expect(next1).toBeEnabled();
@@ -41,7 +55,15 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
   });
 
   it('allows changing quantity (to 3) before proceeding and passes updated amounts', async () => {
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={() => {}} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={() => {}}
+      />,
+    );
 
     const inc = screen.getByLabelText('Aumentar cantidad');
     await userEvent.click(inc);
@@ -60,7 +82,15 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
   });
 
   it('PaymentMethods: Next disabled until selected; toggling off disables again', async () => {
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={() => {}} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={() => {}}
+      />,
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
 
@@ -76,7 +106,15 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
   });
 
   it('PaymentMethods: "Atrás" returns to Quantity step', async () => {
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={() => {}} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={() => {}}
+      />,
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
 
@@ -90,7 +128,15 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
 
   it('PaymentMethods: "Cerrar" calls onClose and resets internal step to Quantity', async () => {
     const onClose = vi.fn();
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={onClose} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={onClose}
+      />,
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
 
@@ -105,7 +151,15 @@ describe('<PurchaseModal /> integration (real QS + Payment)', () => {
 
   it('BuyForm: "bf-back" returns to Payment; "bf-close" calls onClose and resets to Quantity', async () => {
     const onClose = vi.fn();
-    render(<PurchaseModal bs={100} usd={10} isOpen onClose={onClose} />);
+    render(
+      <PurchaseModal
+        userId={'1234a'}
+        bs={100}
+        usd={10}
+        isOpen
+        onClose={onClose}
+      />,
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     await userEvent.click(

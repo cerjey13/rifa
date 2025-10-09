@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -13,8 +12,10 @@ import (
 	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/email"
 	"rifa/backend/internal/core/purchase"
+	"rifa/backend/internal/repository"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
+	"rifa/backend/pkg/logx"
 	"rifa/backend/pkg/utils"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -26,6 +27,7 @@ const maxFileBytes int64 = 1 * 1024 * 1024
 func RegisterPurchaseRoutes(
 	api huma.API,
 	db database.DB,
+	logger logx.Logger,
 	opts config.ServiceOpts,
 ) {
 	emailer := email.NewMailerooClient(
@@ -34,7 +36,8 @@ func RegisterPurchaseRoutes(
 		opts.Email.EmailReciever,
 		opts.Email.EmailURL,
 	)
-	srv := purchase.NewService(db, emailer)
+	srv := purchase.NewService(db, logger, emailer)
+	idempotencyRepo := repository.NewIdempotencyRepository(db)
 
 	huma.Register(
 		api,
@@ -45,6 +48,11 @@ func RegisterPurchaseRoutes(
 			Summary:     "Submit a purchase",
 			Middlewares: huma.Middlewares{
 				mymiddlewares.RequireSession(api, opts.JwtOpts),
+				mymiddlewares.IdempotencyMiddleware(
+					api,
+					idempotencyRepo,
+					logger,
+				),
 			},
 			DefaultStatus: http.StatusCreated,
 		},
@@ -54,13 +62,20 @@ func RegisterPurchaseRoutes(
 		) (*dto.PurchaseOutput, error) {
 			claims, ok := ctx.Value("claims").(jwt.MapClaims)
 			if !ok {
-				log.Println("No session claims")
+				logger.Warn(ctx, "Missing sesion claims")
 				return nil, huma.Error401Unauthorized("No session claims")
 			}
 
 			formData := input.RawBody.Data()
 			if formData.ScreenShot.Size > maxFileBytes {
-				log.Println("purchase image too large ", formData.ScreenShot.Size)
+				logger.Warn(
+					ctx,
+					"Purchase image too large",
+					"user_id",
+					claims["id"],
+					"size",
+					formData.ScreenShot.Size,
+				)
 				return nil, huma.NewError(
 					http.StatusRequestEntityTooLarge,
 					http.StatusText(http.StatusRequestEntityTooLarge),
@@ -72,7 +87,14 @@ func RegisterPurchaseRoutes(
 			r := io.LimitReader(formData.ScreenShot, maxFileBytes+1)
 			screenshot, err := io.ReadAll(r)
 			if err != nil {
-				log.Println(err)
+				logger.Error(
+					ctx,
+					"Failed to read uploaded screenshot",
+					"user_id",
+					claims["id"],
+					"err",
+					err,
+				)
 				return nil, huma.Error400BadRequest(
 					"Could not read uploaded file",
 				)
@@ -98,8 +120,8 @@ func RegisterPurchaseRoutes(
 				}(),
 				PaymentScreenshot: screenshot,
 			}
+
 			if err := srv.Create(ctx, purchase); err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Failed to save purchase",
 				)
@@ -126,7 +148,6 @@ func RegisterPurchaseRoutes(
 	) (*dto.PurchasesOutput, error) {
 		purchases, total, err := srv.GetAll(ctx, *input)
 		if err != nil {
-			log.Println(err)
 			return nil, huma.Error500InternalServerError(
 				"Failed to get purchases",
 			)
@@ -140,7 +161,7 @@ func RegisterPurchaseRoutes(
 		OperationID: "leaderboard",
 		Method:      http.MethodGet,
 		Path:        "/api/purchases/leaderboard",
-		Summary:     "List purchases by user with the most buyed",
+		Summary:     "List purchases by user with the most buyed (admin only)",
 		Middlewares: huma.Middlewares{
 			mymiddlewares.RequireAdminSession(api, opts.JwtOpts),
 		},
@@ -151,9 +172,8 @@ func RegisterPurchaseRoutes(
 	) (*dto.MostPurchasesOutput, error) {
 		leaderboard, err := srv.GetLeaderboard(ctx, *input)
 		if err != nil {
-			log.Println(err)
 			return nil, huma.Error500InternalServerError(
-				"Failed to get purchases",
+				"Failed to get purchases leaderboard",
 			)
 		}
 
@@ -177,7 +197,6 @@ func RegisterPurchaseRoutes(
 		func(ctx context.Context, input *dto.UpdatePurchase) (*struct{}, error) {
 			err := srv.UpdateStatus(ctx, input.ID, input.Body.Status)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
 					"Failed to update purchase",
 				)
@@ -205,9 +224,8 @@ func RegisterPurchaseRoutes(
 		) (*dto.SearchPurchaseOutput, error) {
 			searched, err := srv.FindUserPurchasesByTicket(ctx, input.Number)
 			if err != nil {
-				log.Println(err)
 				return nil, huma.Error500InternalServerError(
-					"Failed to retrieve number data",
+					"Failed to retrieve user with the ticket number",
 				)
 			}
 

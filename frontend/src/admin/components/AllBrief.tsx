@@ -108,7 +108,12 @@ export const ResumenCompras: React.FC = () => {
         </div>
       </div>
 
-      <PurchaseFilters onFilter={setFilters} />
+      <PurchaseFilters
+        onFilter={(newFilters) => {
+          setFilters(newFilters);
+          setPage(1);
+        }}
+      />
 
       {isFetching && (
         <div className='flex items-center gap-2 text-sm text-gray-400 mb-2'>

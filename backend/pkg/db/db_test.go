@@ -14,11 +14,19 @@ type fakeDB struct {
 	closed int
 }
 
-func (f *fakeDB) Query(context.Context, string, ...any) (Rows, error) { return nil, nil }
-func (f *fakeDB) QueryRow(context.Context, string, ...any) Row        { return nil }
-func (f *fakeDB) ExecContext(context.Context, string, ...any) error   { return nil }
-func (f *fakeDB) BeginTx(context.Context) (Tx, error)                 { return nil, nil }
-func (f *fakeDB) Close()                                              { f.closed++ }
+func (f *fakeDB) Query(context.Context, string, ...any) (Rows, error) {
+	return nil, nil
+}
+func (f *fakeDB) QueryRow(context.Context, string, ...any) Row {
+	return nil
+}
+func (f *fakeDB) ExecContext(context.Context, string, ...any) error {
+	return nil
+}
+func (f *fakeDB) BeginTx(context.Context) (Tx, error) {
+	return nil, nil
+}
+func (f *fakeDB) Close() { f.closed++ }
 
 type fakeDriver struct {
 	openCalls  int
@@ -78,8 +86,7 @@ func TestConnect_DriverError_IsCached(t *testing.T) {
 }
 
 // If migrations fail after a successful open, Connect should return an error.
-// With your current code, the DB remains set; later calls return the same DB and the same error.
-// Also ensure driver.Open was called only once.
+// the DB remains set; later calls return the same DB and the same error.
 func TestConnect_MigrationError_ReturnsError_AndSingleton(t *testing.T) {
 	resetSingleton()
 	t.Cleanup(resetSingleton)
@@ -168,7 +175,8 @@ func TestConnect_Singleton_Concurrency(t *testing.T) {
 		t.Fatalf("driver.Open called %d times, want 1", drv.openCalls)
 	}
 
-	// All calls should have the same outcome (migration error) and same DB pointer.
+	// All calls should have the same outcome (migration error) and same DB
+	// pointer.
 	for e := range errs {
 		if e == nil {
 			t.Fatalf("expected error (migration failure), got nil")

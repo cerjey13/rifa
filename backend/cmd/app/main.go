@@ -6,12 +6,16 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"rifa/backend/internal/background"
 	"rifa/backend/internal/core"
 	"rifa/backend/pkg/config"
 	database "rifa/backend/pkg/db"
-	"rifa/backend/pkg/logger"
+	"rifa/backend/pkg/logx"
 	"rifa/backend/pkg/telemetry"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -31,11 +35,12 @@ func main() {
 		log.Fatalf("failed to load environment variables: %v", err)
 	}
 
-	logger := logger.New(cfg.Server.Env)
 	driver := database.NewPostgresDriver()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	dbAdapter, err := database.Connect(ctx, driver, &cfg.Database)
+	ctx := context.Background()
+	dbCtx, cancelDb := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelDb()
+
+	dbAdapter, err := database.Connect(dbCtx, driver, &cfg.Database)
 	if err != nil {
 		log.Fatalf("failed to start the db: %v", err)
 	}
@@ -46,11 +51,21 @@ func main() {
 		log.Fatalf("collector init: %v", err)
 	}
 	defer func() {
-		err = shutdown(context.Background())
+		err = shutdown(ctx)
 		if err != nil {
 			log.Fatalf("failed to shutdown collector: %v", err)
 		}
 	}()
+
+	logger := logx.NewLogger(cfg.Server.Env)
+	signalCtx, cancelSignal := signal.NotifyContext(
+		ctx,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer cancelSignal()
+
+	background.StartIdempotencyCleanup(signalCtx, dbAdapter, logger)
 
 	front := http.FS(dist)
 	server, err := core.NewHttpServer(
@@ -63,9 +78,50 @@ func main() {
 		},
 	)
 	if err != nil {
-		log.Fatal("failed to config the server")
+		logger.Error(
+			signalCtx,
+			"Failed to configure server",
+			"error",
+			err,
+		)
+		os.Exit(1)
 	}
 
-	log.Println("Rifa backend listening on :" + cfg.Server.Port)
-	log.Fatal(server.ListenAndServe())
+	go func() {
+		logger.Info(
+			signalCtx,
+			"Rifa backend listening",
+			"port",
+			cfg.Server.Port,
+		)
+		err := server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			logger.Error(
+				signalCtx,
+				"HTTP server error",
+				"error",
+				err,
+			)
+			cancelSignal()
+		}
+	}()
+
+	<-signalCtx.Done()
+	logger.Info(signalCtx, "Shutting down gracefully...")
+
+	shutdownCtx, cancel := context.WithTimeout(
+		signalCtx,
+		10*time.Second,
+	)
+	defer cancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Error(
+			signalCtx,
+			"Server forced to shutdown",
+			"error",
+			err,
+		)
+	}
+
+	logger.Info(signalCtx, "Server exited cleanly")
 }
