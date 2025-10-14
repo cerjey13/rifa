@@ -1,9 +1,28 @@
-# Allow all search engines to crawl everything
+# Applies to all crawlers
 User-agent: *
+
+# --- Allow SPA routes ---
 Allow: /
 
-# Block specific sensitive folders (adjust if needed)
-Disallow: /admin/
+# --- Disallow known exploit paths ---
+Disallow: /wp-admin/
+Disallow: /wp-includes/
+Disallow: /wordpress/
+Disallow: /blog/
+Disallow: /cms/
+Disallow: /test/
+Disallow: /shop/
+Disallow: /2018/
+Disallow: /.git/
+Disallow: /config
+Disallow: /xmlrpc.php
+Disallow: /*.php$
+Disallow: /*.env$
+Disallow: /*.bak$
+Disallow: /*?*
 
-# Sitemap (add your sitemap if available)
+# --- Crawl rate limit (optional) ---
+Crawl-delay: 10
+
+# --- Sitemap ---
 Sitemap: https://suerteconsarah.com/sitemap.xml

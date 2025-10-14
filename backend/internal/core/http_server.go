@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"rifa/backend/api"
+	mymiddlewares "rifa/backend/api/httpx/middlewares"
 	"rifa/backend/internal/core/spa"
 	"rifa/backend/pkg/config"
 	"rifa/backend/pkg/db"
@@ -94,7 +95,7 @@ func NewHttpServer(
 	api.RegisterHttpRoutes(humaApi, db, opts.Logger, opts.ServiceOpts)
 
 	router.Get("/", spa.SpaHandler(front))
-	router.NotFound(spa.SpaHandler(front))
+	router.With(mymiddlewares.BlockScanners).NotFound(spa.SpaHandler(front))
 
 	server := &HttpServer{
 		router,
