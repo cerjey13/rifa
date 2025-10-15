@@ -38,7 +38,7 @@ export const LandingPage = () => {
 
   return (
     <>
-      {/* preload the pize image */}
+      {/* preload the prize image */}
       <link
         rel='preload'
         as='image'
