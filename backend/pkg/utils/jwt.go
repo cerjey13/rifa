@@ -44,17 +44,24 @@ func GenerateJWT(user *types.User, cfg config.JwtOpts) (string, error) {
 }
 
 func ValidateJWT(tokenStr string, cfg config.JwtOpts) (jwt.MapClaims, error) {
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
-		return []byte(cfg.JwtSecret), nil
-	})
+	token, err := jwt.ParseWithClaims(
+		tokenStr,
+		&jwt.MapClaims{},
+		func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("invalid signing method")
+			}
+			return []byte(cfg.JwtSecret), nil
+		},
+	)
 	if err != nil || !token.Valid {
 		return nil, errors.New("invalid token")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(*jwt.MapClaims)
 	if !ok {
-		return nil, errors.New("invalid claims")
+		return nil, errors.New("invalid claims type")
 	}
 
-	return claims, nil
+	return *claims, nil
 }
