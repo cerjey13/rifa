@@ -8,7 +8,7 @@ import (
 	"log"
 
 	"rifa/backend/internal/types"
-	db "rifa/backend/pkg/db"
+	database "rifa/backend/pkg/db"
 	"rifa/backend/pkg/utils"
 )
 
@@ -21,7 +21,17 @@ type TicketRepository interface {
 		selectedNumbers []string,
 		quantity int,
 	) ([]types.Ticket, error)
+	AssignTicketsTx(
+		ctx context.Context,
+		tx database.Tx,
+		lotteryID,
+		userID,
+		purchaseID string,
+		selectedNumbers []string,
+		quantity int,
+	) ([]types.Ticket, error)
 	GetActiveLotteryID(ctx context.Context) (string, error)
+	GetActiveLotteryIDTx(ctx context.Context, tx database.Tx) (string, error)
 	GetUnavailableNumbers(
 		ctx context.Context,
 		lotteryID string,
@@ -39,10 +49,10 @@ type TicketRepository interface {
 }
 
 type ticketRepo struct {
-	db db.DB
+	db database.DB
 }
 
-func NewTicketRepository(db db.DB) TicketRepository {
+func NewTicketRepository(db database.DB) TicketRepository {
 	return &ticketRepo{db: db}
 }
 
@@ -72,7 +82,33 @@ func (r *ticketRepo) AssignTickets(
 		}
 	}()
 
+	tickets, err := r.AssignTicketsTx(
+		ctx,
+		tx,
+		lotteryID,
+		userID,
+		purchaseID,
+		selectedNumbers,
+		quantity,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return tickets, nil
+}
+
+func (r *ticketRepo) AssignTicketsTx(
+	ctx context.Context,
+	tx database.Tx,
+	lotteryID,
+	userID,
+	purchaseID string,
+	selectedNumbers []string,
+	quantity int,
+) ([]types.Ticket, error) {
 	var intNumbers []int
+	var err error
 	if len(selectedNumbers) > 0 {
 		intNumbers, err = utils.ConvertToIntSlice(selectedNumbers)
 		if err != nil {
@@ -172,6 +208,18 @@ func (r *ticketRepo) AssignTickets(
 func (r *ticketRepo) GetActiveLotteryID(ctx context.Context) (string, error) {
 	var lotteryID string
 	err := r.db.QueryRow(
+		ctx,
+		`SELECT id FROM lotteries WHERE active = TRUE LIMIT 1`,
+	).Scan(&lotteryID)
+	return lotteryID, err
+}
+
+func (r *ticketRepo) GetActiveLotteryIDTx(
+	ctx context.Context,
+	tx database.Tx,
+) (string, error) {
+	var lotteryID string
+	err := tx.QueryRow(
 		ctx,
 		`SELECT id FROM lotteries WHERE active = TRUE LIMIT 1`,
 	).Scan(&lotteryID)

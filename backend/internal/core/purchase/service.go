@@ -2,6 +2,7 @@ package purchase
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"rifa/backend/api/httpx/dto"
@@ -32,6 +33,7 @@ type Service interface {
 }
 
 type service struct {
+	db         database.DB
 	repo       repository.PurchaseRepository
 	ticketRepo repository.TicketRepository
 	logger     logx.Logger
@@ -44,6 +46,7 @@ func NewService(
 	emailClient email.Mailer,
 ) Service {
 	return &service{
+		db:         db,
 		repo:       repository.NewPurchaseRepository(db),
 		ticketRepo: repository.NewTicketRepository(db),
 		logger:     logger,
@@ -80,57 +83,97 @@ func (s *service) Create(
 		CreatedAt:         time.Now(),
 	}
 
-	purchaseID, err := s.repo.Create(ctx, purchase)
-	if err != nil {
-		s.logger.Error(
-			ctx,
-			"Failed to create the purchase order",
-			"user_id",
-			req.UserID,
-			"error",
-			err,
-		)
-		return err
+	tx, txErr := s.db.BeginTx(ctx)
+	if txErr != nil {
+		s.logger.Error(ctx, "Failed to begin transaction", "error", txErr)
+		return txErr
 	}
+	defer func() {
+		if txErr != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				s.logger.Error(
+					ctx,
+					"Failed to rollback transaction",
+					"error",
+					rbErr,
+				)
+				txErr = errors.Join(txErr, rbErr)
+			}
+		}
+	}()
 
-	lotteryID, err := s.ticketRepo.GetActiveLotteryID(ctx)
-	if err != nil {
-		s.logger.Error(
+	var purchaseID string
+	txErr = func() error {
+		purchaseID, err := s.repo.CreateTx(ctx, tx, purchase)
+		if err != nil {
+			s.logger.Error(
+				ctx,
+				"Failed to create purchase order",
+				"user_id",
+				purchase.UserID,
+				"error",
+				err,
+			)
+			return err
+		}
+
+		lotteryID, err := s.ticketRepo.GetActiveLotteryIDTx(ctx, tx)
+		if err != nil {
+			s.logger.Error(
+				ctx,
+				"Failed to get active lottery",
+				"user_id",
+				purchase.UserID,
+				"purchase_id",
+				purchaseID,
+				"error",
+				err,
+			)
+			return err
+		}
+
+		_, err = s.ticketRepo.AssignTicketsTx(
 			ctx,
-			"Failed to get active lottery",
-			"user_id",
-			req.UserID,
-			"purchase_id",
+			tx,
+			lotteryID,
+			purchase.UserID,
 			purchaseID,
-			"error",
-			err,
+			req.SelectedNumbers,
+			purchase.Quantity,
 		)
-		return err
+		if err != nil {
+			s.logger.Error(
+				ctx,
+				"Failed to assign tickets",
+				"user_id",
+				purchase.UserID,
+				"purchase_id",
+				purchaseID,
+				"error",
+				err,
+			)
+			return err
+		}
+
+		return nil
+	}()
+	if txErr != nil {
+		return txErr
 	}
 
-	_, err = s.ticketRepo.AssignTickets(
-		ctx,
-		lotteryID,
-		req.UserID,
-		purchaseID,
-		req.SelectedNumbers,
-		req.Quantity,
-	)
-	if err != nil {
+	if commitErr := tx.Commit(ctx); commitErr != nil {
 		s.logger.Error(
 			ctx,
-			"Failed to create purchase tickets",
+			"Failed to commit transaction",
 			"user_id",
-			req.UserID,
-			"purchase_id",
-			purchaseID,
+			purchase.UserID,
 			"error",
-			err,
+			commitErr,
 		)
-		return err
+		return commitErr
 	}
 
-	go func(p *types.Purchase) {
+	go func(p *types.Purchase, pID string) {
 		ct, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 
@@ -140,9 +183,9 @@ func (s *service) Create(
 				ctx,
 				"Failed to send the email purchase confirmation",
 				"user_id",
-				req.UserID,
+				p.UserID,
 				"purchase_id",
-				purchaseID,
+				pID,
 				"error",
 				err,
 			)
@@ -150,7 +193,7 @@ func (s *service) Create(
 		}
 
 		s.logger.Info(ct, "New purchase received and email send!")
-	}(purchase)
+	}(purchase, purchaseID)
 
 	return nil
 }
