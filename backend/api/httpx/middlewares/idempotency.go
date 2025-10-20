@@ -289,6 +289,18 @@ func IdempotencyMiddleware(
 		next(captureCtx)
 
 		status := captureCtx.Status()
+		if status != http.StatusCreated {
+			logger.Warn(
+				ctx.Context(),
+				"Skipping idempotency record because status is not 201 Created",
+				"key",
+				key,
+				"status",
+				status,
+			)
+			return
+		}
+
 		saveErr := repo.Save(
 			captureCtx.Context(),
 			repository.IdempotencyRecord{
