@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	_ "image/gif"
 	"image/jpeg"
 	_ "image/png"
 	"math"
+	"net/http"
 
 	"github.com/disintegration/imaging"
 )
@@ -20,14 +22,21 @@ const (
 	_MaxScreenshotBytes int = 80 * 1024 // 80 KB
 )
 
+// CompressToJPG takes any image format (JPEG, PNG, GIF, WEBP, etc.)
+// and compresses it into a normalized JPEG under _MaxScreenshotBytes.
 func CompressToJPG(screenshot []byte) ([]byte, error) {
 	if len(screenshot) == 0 {
 		return nil, errors.New("no screenshot data")
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(screenshot))
+	mime := http.DetectContentType(screenshot)
+	if mime == "application/octet-stream" {
+		return nil, fmt.Errorf("unsupported or unrecognized image data")
+	}
+
+	img, format, err := image.Decode(bytes.NewReader(screenshot))
 	if err != nil {
-		return nil, fmt.Errorf("decode: %w", err)
+		return nil, fmt.Errorf("decode (%s): %w", mime, err)
 	}
 
 	w := img.Bounds().Dx()
@@ -51,11 +60,13 @@ func CompressToJPG(screenshot []byte) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf(
-		"unable to compress image under %d bytes",
+		"unable to compress image under %d bytes (input format: %s)",
 		_MaxScreenshotBytes,
+		format,
 	)
 }
 
+// tryQualities tries descending JPEG quality levels until the image fits the byte limit.
 func tryQualities(img image.Image) ([]byte, bool) {
 	for q := _JPEGQualityStart; q >= _JPEGQualityMin; q -= 5 {
 		var buf bytes.Buffer

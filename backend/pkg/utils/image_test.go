@@ -2,8 +2,10 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
 	"math/rand/v2"
@@ -299,6 +301,52 @@ func TestCompressToJPG_AlreadyJPEGInputs(t *testing.T) {
 			if tt.exp.minWidth > 0 && w < tt.exp.minWidth &&
 				tt.srcW >= _MinImageWidth {
 				t.Fatalf("expected width >= %d, got %d", tt.exp.minWidth, w)
+			}
+		})
+	}
+}
+
+func TestCompressToJPG_OtherFormats(t *testing.T) {
+	formats := []string{"gif", "png", "jpeg"}
+	src := mkGradient(640, 480)
+
+	for _, format := range formats {
+		t.Run(fmt.Sprintf("handles_%s_input", format), func(t *testing.T) {
+			var in []byte
+			var err error
+			switch format {
+			case "gif":
+				var buf bytes.Buffer
+				err = gif.Encode(&buf, src, nil)
+				in = buf.Bytes()
+			case "png":
+				in = mustPNGEncode(t, src)
+			case "jpeg":
+				in = mustJPEGEncode(t, src, 80)
+			default:
+				t.Fatalf("unsupported test format: %s", format)
+			}
+			if err != nil {
+				t.Fatalf("encode %s: %v", format, err)
+			}
+
+			out, err := CompressToJPG(in)
+			if err != nil {
+				t.Fatalf("CompressToJPG(%s) error: %v", format, err)
+			}
+			if !isJPEGMagic(out) {
+				t.Fatalf("expected JPEG output for %s input", format)
+			}
+			if len(out) == 0 {
+				t.Fatalf("empty output for %s input", format)
+			}
+			if len(out) > _MaxScreenshotBytes {
+				t.Fatalf(
+					"%s compressed size = %d, want <= %d",
+					format,
+					len(out),
+					_MaxScreenshotBytes,
+				)
 			}
 		})
 	}
