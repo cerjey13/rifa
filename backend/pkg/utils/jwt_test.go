@@ -60,22 +60,30 @@ func TestHashPassword_And_CheckPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HashPassword error: %v", err)
 	}
+
 	if hash == "" {
-		t.Fatalf("empty hash")
+		t.Fatalf("expected non-empty hash")
 	}
+
 	if hash == pwd {
-		t.Fatalf("hash should not equal plaintext")
+		t.Fatalf("hash should not equal plaintext password")
 	}
-	// bcrypt hashes start with $2 (e.g., $2a$, $2b$, $2y$)
+
 	if !strings.HasPrefix(hash, "$2") {
-		t.Fatalf("unexpected hash prefix: %q", hash[:2])
+		t.Fatalf("unexpected bcrypt hash prefix: %q", hash[:2])
 	}
 
 	if !CheckPassword(pwd, hash) {
-		t.Fatalf("CheckPassword should succeed for correct password")
+		t.Fatalf("CheckPassword should succeed with correct password")
 	}
+
 	if CheckPassword("wrongpassword", hash) {
 		t.Fatalf("CheckPassword should fail for wrong password")
+	}
+
+	corrupted := hash[:len(hash)/2]
+	if CheckPassword(pwd, corrupted) {
+		t.Fatalf("CheckPassword should fail for corrupted hash")
 	}
 }
 
@@ -94,7 +102,7 @@ func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
 		t.Fatalf("GenerateJWT error: %v", err)
 	}
 	if tok == "" {
-		t.Fatalf("empty token")
+		t.Fatalf("expected non-empty token")
 	}
 
 	claims, err := ValidateJWT(tok, cfg)
@@ -123,10 +131,8 @@ func TestGenerateJWT_And_ValidateJWT_Success(t *testing.T) {
 
 func TestValidateJWT_Failures(t *testing.T) {
 	cfg := testCfg()
-
 	now := time.Now()
 
-	// Build tokens for failure scenarios.
 	makeSigned := func(secret string, exp time.Time) string {
 		claims := jwt.MapClaims{
 			"id":    "u1",
@@ -144,8 +150,14 @@ func TestValidateJWT_Failures(t *testing.T) {
 		return s
 	}
 
-	validWrongSig := makeSigned("other-secret", now.Add(1*time.Hour))
+	validWrongSig := makeSigned("wrong-secret", now.Add(1*time.Hour))
 	expired := makeSigned(cfg.JwtSecret, now.Add(-1*time.Hour))
+	invalidAlg := func() string {
+		claims := jwt.MapClaims{"id": "u1", "exp": now.Add(1 * time.Hour).Unix()}
+		tok := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+		s, _ := tok.SignedString(jwt.UnsafeAllowNoneSignatureType)
+		return s
+	}()
 
 	tests := []struct {
 		name  string
@@ -154,6 +166,7 @@ func TestValidateJWT_Failures(t *testing.T) {
 		{"garbage_string", "this-is-not-a-jwt"},
 		{"wrong_signature", validWrongSig},
 		{"expired_token", expired},
+		{"invalid_algorithm", invalidAlg},
 	}
 
 	for _, tt := range tests {
@@ -162,5 +175,32 @@ func TestValidateJWT_Failures(t *testing.T) {
 				t.Fatalf("expected validation failure for case %q", tt.name)
 			}
 		})
+	}
+}
+
+type BadJSONClaims struct {
+	jwt.RegisteredClaims
+}
+
+func (BadJSONClaims) MarshalJSON() ([]byte, error) {
+	return []byte(`["not-an-object"]`), nil
+}
+
+func TestValidateJWT_InvalidClaims(t *testing.T) {
+	cfg := testCfg()
+	now := time.Now()
+
+	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, BadJSONClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(now.Add(1 * time.Hour)),
+		},
+	})
+	signed, err := tok.SignedString([]byte(cfg.JwtSecret))
+	if err != nil {
+		t.Fatalf("sign token: %v", err)
+	}
+
+	if _, err := ValidateJWT(signed, cfg); err == nil {
+		t.Fatalf("expected validation failure for invalid claim structure")
 	}
 }

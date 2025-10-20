@@ -142,8 +142,8 @@ func RegisterAuthRoutes(
 			logger.Info(
 				ctx,
 				"user logged out",
-				"email",
-				claims["email"].(string),
+				"user_id",
+				claims["id"].(string),
 			)
 			return &dto.LogoutOutput{
 				ClearCookie: http.Cookie{

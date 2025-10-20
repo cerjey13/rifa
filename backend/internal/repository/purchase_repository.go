@@ -16,6 +16,11 @@ import (
 
 type PurchaseRepository interface {
 	Create(ctx context.Context, p *types.Purchase) (string, error)
+	CreateTx(
+		ctx context.Context,
+		tx database.Tx,
+		p *types.Purchase,
+	) (string, error)
 	GetAll(
 		ctx context.Context,
 		filters dto.GetAllPurchases,
@@ -44,6 +49,32 @@ func (r *purchaseRepo) Create(
 ) (string, error) {
 	var id string
 	err := r.db.QueryRow(
+		ctx,
+		`INSERT INTO purchases
+		(user_id, quantity, monto_bs, monto_usd, payment_method, 
+		transaction_digits, payment_screenshot, status, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		RETURNING id`,
+		p.UserID,
+		p.Quantity,
+		p.MontoBs,
+		p.MontoUSD,
+		p.PaymentMethod,
+		p.TransactionDigits,
+		p.PaymentScreenshot,
+		p.Status,
+		p.CreatedAt,
+	).Scan(&id)
+	return id, err
+}
+
+func (r *purchaseRepo) CreateTx(
+	ctx context.Context,
+	tx database.Tx,
+	p *types.Purchase,
+) (string, error) {
+	var id string
+	err := tx.QueryRow(
 		ctx,
 		`INSERT INTO purchases
 		(user_id, quantity, monto_bs, monto_usd, payment_method, 
