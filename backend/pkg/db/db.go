@@ -2,9 +2,9 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"rifa/backend/pkg/config"
@@ -20,6 +20,7 @@ type DB interface {
 	ExecContext(ctx context.Context, query string, args ...any) error
 	BeginTx(ctx context.Context) (Tx, error)
 	Close()
+	Ping(ctx context.Context) error
 }
 
 type Tx interface {
@@ -75,15 +76,17 @@ func Connect(
 }
 
 func runMigrations(cfg *config.DatabaseOpts) error {
-	absMigrationsPath, err := filepath.Abs("migrations")
+	rootPath, err := filepath.Abs(".")
 	if err != nil {
 		return err
 	}
 
-	m, err := migrate.New(
-		fmt.Sprintf("file://%s", absMigrationsPath),
-		cfg.DatabaseUrl,
-	)
+	for !strings.HasSuffix(rootPath, "backend") && rootPath != "/" {
+		rootPath = filepath.Dir(rootPath)
+	}
+
+	absMigrationsPath := filepath.Join(rootPath, "migrations")
+	m, err := migrate.New("file://"+absMigrationsPath, cfg.DatabaseUrl)
 	if err != nil {
 		return err
 	}

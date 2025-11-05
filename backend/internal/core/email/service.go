@@ -6,11 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"rifa/backend/internal/types"
+	"rifa/backend/pkg/logx"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -26,11 +26,19 @@ type mailerooClient struct {
 	to       string
 	emailURL string
 	client   *http.Client
+	logger   logx.Logger
 }
 
 // NewMailerooClient creates a new Maileroo API client.
-func NewMailerooClient(apiKey, from, to, url string) Mailer {
+func NewMailerooClient(
+	logger logx.Logger,
+	apiKey,
+	from,
+	to,
+	url string,
+) Mailer {
 	return &mailerooClient{
+		logger:   logger,
 		apiKey:   apiKey,
 		from:     from,
 		to:       to,
@@ -95,7 +103,7 @@ func (m *mailerooClient) SendPurchaseConfirmation(
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
-			log.Printf("failed to close body: %v", err)
+			m.logger.Warn(ctx, "failed to close body", "error", err)
 		}
 	}()
 

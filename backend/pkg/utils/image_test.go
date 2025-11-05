@@ -1,3 +1,6 @@
+//go:build !integration
+// +build !integration
+
 package utils
 
 import (
@@ -383,7 +386,6 @@ func mustPNGEncodeForBench(img image.Image, b *testing.B) []byte {
 
 func benchCompress(b *testing.B, in []byte) {
 	b.ReportAllocs()
-	// Warm-up once (optional)
 	if _, err := CompressToJPG(in); err != nil {
 		b.Fatalf("warmup failed: %v", err)
 	}

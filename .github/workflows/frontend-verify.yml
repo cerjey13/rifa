@@ -3,8 +3,8 @@ name: frontend-verify
 on:
   pull_request:
     paths:
-      - 'frontend/**'
-      - '.github/workflows/frontend-verify.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend-verify.yml"
   workflow_dispatch: {}
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: "lts/*"
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install deps
@@ -41,8 +41,6 @@ jobs:
 
       - name: Test
         run: pnpm test:run
-      - name: Build frontend into backend/cmd/app/dist
-        run: pnpm build-back
 
       - name: Type-check + production build
         run: pnpm build

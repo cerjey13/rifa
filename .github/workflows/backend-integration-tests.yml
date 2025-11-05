@@ -1,0 +1,31 @@
+name: Backend Integration Tests
+
+on:
+    workflow_dispatch:
+    pull_request:
+        paths:
+            - "backend/**"
+            - ".github/workflows/backend-integration-tests.yml"
+
+jobs:
+    run-integration-tests:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: backend/go.mod
+                  cache: true
+                  cache-dependency-path: backend/go.sum
+
+            - name: Build
+              run: go build -v ./...
+
+            - name: Run integration tests
+              run: go test -v -tags=integration ./...

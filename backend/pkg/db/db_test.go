@@ -1,3 +1,6 @@
+//go:build !integration
+// +build !integration
+
 package db
 
 import (
@@ -27,6 +30,9 @@ func (f *fakeDB) BeginTx(context.Context) (Tx, error) {
 	return nil, nil
 }
 func (f *fakeDB) Close() { f.closed++ }
+func (f *fakeDB) Ping(ctx context.Context) error {
+	return nil
+}
 
 type fakeDriver struct {
 	openCalls  int
