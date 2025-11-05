@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"rifa/backend/pkg/config"
@@ -75,11 +76,16 @@ func Connect(
 }
 
 func runMigrations(cfg *config.DatabaseOpts) error {
-	absMigrationsPath, err := filepath.Abs("migrations")
+	rootPath, err := filepath.Abs(".")
 	if err != nil {
 		return err
 	}
 
+	for !strings.HasSuffix(rootPath, "backend") && rootPath != "/" {
+		rootPath = filepath.Dir(rootPath)
+	}
+
+	absMigrationsPath := filepath.Join(rootPath, "migrations")
 	m, err := migrate.New("file://"+absMigrationsPath, cfg.DatabaseUrl)
 	if err != nil {
 		return err

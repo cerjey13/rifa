@@ -4,8 +4,8 @@ on:
     workflow_dispatch:
     pull_request:
         paths:
-            - 'backend/**'
-            - '.github/workflows/backend-integration-tests.yml'
+            - "backend/**"
+            - ".github/workflows/backend-integration-tests.yml"
 
 jobs:
     run-integration-tests:
@@ -17,10 +17,6 @@ jobs:
         steps:
             - uses: actions/checkout@v5
 
-            - name: Stub dist for embed
-              run: |
-                  mkdir -p cmd/app/dist
-                  echo '<!doctype html><title>stub</title>' > cmd/app/dist/index.html
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
