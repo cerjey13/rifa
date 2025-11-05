@@ -3,8 +3,8 @@ name: Build and Test the backend
 on:
   pull_request:
     paths:
-      - "backend/**"
-      - ".github/workflows/backend-build-and-test.yml"
+      - 'backend/**'
+      - '.github/workflows/backend-build-and-test.yml'
   workflow_call:
 
 jobs:
