@@ -5,10 +5,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"rifa/backend/pkg/config"
-	"rifa/backend/pkg/db"
 	"testing"
 	"time"
+
+	"rifa/backend/pkg/config"
+	"rifa/backend/pkg/db"
 
 	"github.com/docker/go-connections/nat"
 	tc "github.com/testcontainers/testcontainers-go"
