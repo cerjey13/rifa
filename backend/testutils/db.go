@@ -3,8 +3,13 @@ package testutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +26,27 @@ type pgState struct {
 	Cancel    context.CancelFunc
 	Container tc.Container
 	Database  db.DB
+}
+
+// ensureBackendDir change the working directory to be "backend" to avoid issues
+// with the migrations folder when starting the test db.
+func ensureBackendDir() error {
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("could not determine current file path")
+	}
+
+	rootPath := filepath.Dir(currentFile)
+
+	for !strings.HasSuffix(rootPath, "backend") && rootPath != "/" {
+		rootPath = filepath.Dir(rootPath)
+	}
+
+	if rootPath == "/" {
+		return errors.New("could not find backend directory in path")
+	}
+
+	return os.Chdir(rootPath)
 }
 
 // StartPostgres spins up a temporary Postgres container for integration tests.
@@ -69,6 +95,11 @@ func StartPostgres(t *testing.T) pgState {
 		t.Fatalf("failed to get mapped port: %v", err)
 	}
 
+	err = ensureBackendDir()
+	if err != nil {
+		t.Fatalf("failed to change directory: %v", err)
+	}
+
 	dsn := fmt.Sprintf(
 		"postgres://rifa:rifa@%s:%s/rifa?sslmode=disable",
 		host,
@@ -80,7 +111,14 @@ func StartPostgres(t *testing.T) pgState {
 	var database db.DB
 	const maxRetries = 6
 	for i := 1; i <= maxRetries; i++ {
-		database, err = db.Connect(ctx, driver, &config.DatabaseOpts{DatabaseUrl: dsn})
+		if ctx.Err() != nil {
+			break
+		}
+		database, err = db.Connect(
+			ctx,
+			driver,
+			&config.DatabaseOpts{DatabaseUrl: dsn},
+		)
 		if err == nil {
 			break
 		}
