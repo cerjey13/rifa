@@ -1,4 +1,5 @@
-// utils/utils_test.go
+//go:build !integration
+
 package utils
 
 import (

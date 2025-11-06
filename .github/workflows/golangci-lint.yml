@@ -48,4 +48,5 @@ jobs:
           version: latest
           working-directory: backend
           args: --timeout=5m
+          skip-cache: true
           # only-new-issues: true

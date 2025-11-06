@@ -31,6 +31,7 @@ func RegisterPurchaseRoutes(
 	opts config.ServiceOpts,
 ) {
 	emailer := email.NewMailerooClient(
+		logger,
 		opts.Email.MailerooApiKey,
 		opts.Email.EmailSender,
 		opts.Email.EmailReciever,

@@ -66,6 +66,10 @@ func (p *PGXPool) Close() {
 	p.Pool.Close()
 }
 
+func (p *PGXPool) Ping(ctx context.Context) error {
+	return p.Pool.Ping(ctx)
+}
+
 type pgxTx struct{ tx pgx.Tx }
 
 func (t *pgxTx) Query(

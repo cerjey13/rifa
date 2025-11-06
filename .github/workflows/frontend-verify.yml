@@ -41,8 +41,6 @@ jobs:
 
       - name: Test
         run: pnpm test:run
-      - name: Build frontend into backend/cmd/app/dist
-        run: pnpm build-back
 
       - name: Type-check + production build
         run: pnpm build

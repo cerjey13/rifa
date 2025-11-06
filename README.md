@@ -15,7 +15,7 @@ It allows users to purchase raffle tickets, manage payments, and view results in
 - ✨ Full-stack app with **Go + Huma + Chi** backend and **React + Vite + TailwindCss** frontend
 - 💳 Ticket purchasing & payment management
 - 🐳 Dockerized for easy deployment
-- ✅ Unit tests & GitHub Actions CI/CD
+- ✅ Unit and Integration tests & GitHub Actions CI/CD
 - 📊 OpenTelemetry tracing and Prometheus metrics
 - 🪶 Idempotent request middleware
 - 🧩 Background job system for async processing
@@ -25,7 +25,7 @@ It allows users to purchase raffle tickets, manage payments, and view results in
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Go (Chi, PostgreSQL)
+- **Backend:** Go (Huma, Chi, Pgx)
 - **Frontend:** React, TypeScript, Vite, TailwindCSS
 - **Database:** PostgreSQL
 - **CI/CD:** GitHub Actions + Railway deployment
@@ -47,8 +47,8 @@ It allows users to purchase raffle tickets, manage payments, and view results in
 
 ```
 .
-├── backend/         # Go backend (Huma, Chi, PostgreSQL)
-├── frontend/        # React + TypeScript frontend (Vite)
+├── backend/         # Go backend (Huma, Chi, Pgx)
+├── frontend/        # React (Vite) + TypeScript + TailwindCSS
 ├── monitoring/      # Otel collector + Prometheus + Loki + Tempo + Grafana configuration
 ├── .github/         # GitHub Actions workflows
 ├── Dockerfile       # Containerization setup
@@ -128,15 +128,23 @@ VITE_API_URL=http://localhost:8080
 
 ## 🧪 Tests
 
-Run unit tests for backend and frontend:
+Run tests for backend and frontend:
 
-#### Backend
+### Backend
+
+#### Unit Tests
 
 ```bash
 cd backend && go test ./...
 ```
 
-#### Frontend
+#### Integration Tests
+
+```bash
+cd backend && go test -v -tags=integration ./...
+```
+
+### Frontend
 
 ```bash
 cd frontend && pnpm test
